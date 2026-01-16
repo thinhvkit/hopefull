@@ -4,13 +4,15 @@ export interface LoginResponse {
   user: {
     id: string;
     email: string;
+    phone?: string;
     role: 'USER' | 'THERAPIST' | 'ADMIN';
     firstName?: string;
     lastName?: string;
     avatarUrl?: string;
   };
-  accessToken: string;
-  refreshToken: string;
+  accessToken?: string;
+  refreshToken?: string;
+  requiresVerification?: boolean;
 }
 
 export interface RegisterRequest {
@@ -22,41 +24,64 @@ export interface RegisterRequest {
   role?: 'USER' | 'THERAPIST';
 }
 
+export async function login(email: string, password: string): Promise<LoginResponse> {
+  const response = await api.post('/auth/login', { email, password });
+  return response.data;
+}
+
+export async function register(data: RegisterRequest): Promise<LoginResponse> {
+  const response = await api.post('/auth/register', data);
+  return response.data;
+}
+
+export async function refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  const response = await api.post('/auth/refresh', null, {
+    headers: { Authorization: `Bearer ${refreshToken}` },
+  });
+  return response.data;
+}
+
+export async function getMe(): Promise<LoginResponse['user']> {
+  const response = await api.get('/auth/me');
+  return response.data;
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const response = await api.post('/auth/forgot-password', { email });
+  return response.data;
+}
+
+export async function verifyOtp(email: string, otp: string): Promise<LoginResponse & { verified: boolean }> {
+  const response = await api.post('/auth/verify-otp', { email, otp });
+  return response.data;
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
+  const response = await api.post('/auth/reset-password', { token, password });
+  return response.data;
+}
+
+export async function resendOtp(email: string): Promise<{ message: string }> {
+  const response = await api.post('/auth/resend-otp', { email });
+  return response.data;
+}
+
+export async function verifyPhone(
+  idToken: string,
+  userId?: string
+): Promise<LoginResponse> {
+  const response = await api.post('/auth/verify-phone', { idToken, userId });
+  return response.data;
+}
+
 export const authService = {
-  async login(email: string, password: string): Promise<LoginResponse> {
-    const response = await api.post('/auth/login', { email, password });
-    return response.data;
-  },
-
-  async register(data: RegisterRequest): Promise<LoginResponse> {
-    const response = await api.post('/auth/register', data);
-    return response.data;
-  },
-
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
-    const response = await api.post('/auth/refresh', null, {
-      headers: { Authorization: `Bearer ${refreshToken}` },
-    });
-    return response.data;
-  },
-
-  async getMe(): Promise<LoginResponse['user']> {
-    const response = await api.get('/auth/me');
-    return response.data;
-  },
-
-  async forgotPassword(email: string): Promise<{ message: string }> {
-    const response = await api.post('/auth/forgot-password', { email });
-    return response.data;
-  },
-
-  async verifyOtp(email: string, otp: string): Promise<{ token: string }> {
-    const response = await api.post('/auth/verify-otp', { email, otp });
-    return response.data;
-  },
-
-  async resetPassword(token: string, password: string): Promise<{ message: string }> {
-    const response = await api.post('/auth/reset-password', { token, password });
-    return response.data;
-  },
+  login,
+  register,
+  refreshToken,
+  getMe,
+  forgotPassword,
+  verifyOtp,
+  resetPassword,
+  resendOtp,
+  verifyPhone,
 };

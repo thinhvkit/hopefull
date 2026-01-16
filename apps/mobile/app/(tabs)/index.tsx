@@ -4,12 +4,15 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
-  FlatList,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/store/auth';
+import { useTherapists, useAppointments } from '@/hooks';
+import { Avatar, Rating, Card, Badge } from '@/components/ui';
+import type { Therapist, Appointment } from '@/types';
 
 const categories = [
   { id: '1', name: 'Anxiety', icon: 'sad-outline' },
@@ -25,23 +28,109 @@ export default function HomeScreen() {
   const { user } = useAuthStore();
   const isTherapist = user?.role === 'THERAPIST';
 
+  const { data: therapistsData, isLoading: therapistsLoading, refetch: refetchTherapists } = useTherapists({ limit: 5, isOnline: true });
+  const { data: appointments, isLoading: appointmentsLoading, refetch: refetchAppointments } = useAppointments({ status: 'upcoming' });
+
+  const featuredTherapists = therapistsData?.pages[0]?.data || [];
+  const upcomingAppointments = appointments?.slice(0, 3) || [];
+
+  const handleRefresh = () => {
+    refetchTherapists();
+    refetchAppointments();
+  };
+
   if (isTherapist) {
     return <TherapistDashboard />;
   }
 
+  const renderTherapistCard = (therapist: Therapist) => (
+    <TouchableOpacity
+      key={therapist.id}
+      style={styles.therapistCard}
+      onPress={() => router.push(`/therapist/${therapist.id}`)}
+    >
+      <Avatar
+        source={therapist.user.avatarUrl}
+        name={`${therapist.user.firstName} ${therapist.user.lastName}`}
+        size="lg"
+        showOnlineStatus
+        isOnline={therapist.isOnline}
+      />
+      <Text style={styles.therapistName} numberOfLines={1}>
+        {therapist.user.firstName} {therapist.user.lastName}
+      </Text>
+      <View style={styles.therapistRating}>
+        <Ionicons name="star" size={12} color="#FBBF24" />
+        <Text style={styles.ratingText}>{therapist.averageRating.toFixed(1)}</Text>
+      </View>
+      <Text style={styles.therapistPrice}>${(therapist.hourlyRate / 100).toFixed(0)}/hr</Text>
+    </TouchableOpacity>
+  );
+
+  const renderAppointmentCard = (appointment: Appointment) => (
+    <Card
+      key={appointment.id}
+      variant="outlined"
+      style={styles.appointmentCard}
+      onPress={() => router.push(`/appointment/${appointment.id}`)}
+    >
+      <View style={styles.appointmentRow}>
+        <Avatar
+          source={appointment.therapist?.user.avatarUrl}
+          name={`${appointment.therapist?.user.firstName}`}
+          size="sm"
+        />
+        <View style={styles.appointmentInfo}>
+          <Text style={styles.appointmentTherapist}>
+            {appointment.therapist?.user.firstName} {appointment.therapist?.user.lastName}
+          </Text>
+          <Text style={styles.appointmentTime}>
+            {new Date(appointment.scheduledAt).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
+          </Text>
+        </View>
+        <Badge
+          label={appointment.status === 'CONFIRMED' ? 'Confirmed' : 'Pending'}
+          variant={appointment.status === 'CONFIRMED' ? 'success' : 'warning'}
+          size="sm"
+        />
+      </View>
+    </Card>
+  );
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={therapistsLoading || appointmentsLoading}
+          onRefresh={handleRefresh}
+        />
+      }
+    >
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Hello, {user?.firstName || 'there'}</Text>
           <Text style={styles.subtitle}>How are you feeling today?</Text>
         </View>
-        <TouchableOpacity style={styles.notificationButton}>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={() => router.push('/notifications')}
+        >
           <Ionicons name="notifications-outline" size={24} color="#111827" />
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.searchBar}>
+      <TouchableOpacity
+        style={styles.searchBar}
+        onPress={() => router.push('/(tabs)/therapists')}
+      >
         <Ionicons name="search" size={20} color="#6B7280" />
         <Text style={styles.searchPlaceholder}>Search therapists...</Text>
       </TouchableOpacity>
@@ -50,7 +139,14 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Categories</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {categories.map((category) => (
-            <TouchableOpacity key={category.id} style={styles.categoryChip}>
+            <TouchableOpacity
+              key={category.id}
+              style={styles.categoryChip}
+              onPress={() => router.push({
+                pathname: '/(tabs)/therapists',
+                params: { specialization: category.name }
+              })}
+            >
               <Ionicons name={category.icon as any} size={20} color="#4F46E5" />
               <Text style={styles.categoryText}>{category.name}</Text>
             </TouchableOpacity>
@@ -58,7 +154,10 @@ export default function HomeScreen() {
         </ScrollView>
       </View>
 
-      <TouchableOpacity style={styles.talkNowCard}>
+      <TouchableOpacity
+        style={styles.talkNowCard}
+        onPress={() => router.push('/instant-call')}
+      >
         <View style={styles.talkNowContent}>
           <Text style={styles.talkNowTitle}>Need to talk now?</Text>
           <Text style={styles.talkNowSubtitle}>
@@ -66,29 +165,45 @@ export default function HomeScreen() {
           </Text>
         </View>
         <View style={styles.talkNowButton}>
-          <Ionicons name="videocam" size={24} color="#fff" />
+          <Ionicons name="videocam" size={24} color="#4F46E5" />
           <Text style={styles.talkNowButtonText}>Talk Now</Text>
         </View>
       </TouchableOpacity>
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured Therapists</Text>
-          <TouchableOpacity>
+          <Text style={styles.sectionTitle}>Available Now</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/therapists')}>
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.comingSoon}>Loading therapists...</Text>
+        {therapistsLoading ? (
+          <ActivityIndicator size="small" color="#4F46E5" />
+        ) : featuredTherapists.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {featuredTherapists.map(renderTherapistCard)}
+          </ScrollView>
+        ) : (
+          <Text style={styles.emptyText}>No therapists available right now</Text>
+        )}
       </View>
 
-      <View style={styles.section}>
+      <View style={[styles.section, { marginBottom: 100 }]}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
           <TouchableOpacity onPress={() => router.push('/(tabs)/appointments')}>
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.comingSoon}>No upcoming appointments</Text>
+        {appointmentsLoading ? (
+          <ActivityIndicator size="small" color="#4F46E5" />
+        ) : upcomingAppointments.length > 0 ? (
+          <View style={styles.appointmentsList}>
+            {upcomingAppointments.map(renderAppointmentCard)}
+          </View>
+        ) : (
+          <Text style={styles.emptyText}>No upcoming appointments</Text>
+        )}
       </View>
     </ScrollView>
   );
@@ -332,5 +447,71 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     marginTop: 4,
+  },
+  therapistCard: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 16,
+    marginRight: 12,
+    width: 140,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  therapistName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  therapistRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  ratingText: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  therapistPrice: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4F46E5',
+    marginTop: 4,
+  },
+  appointmentCard: {
+    marginBottom: 8,
+  },
+  appointmentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  appointmentInfo: {
+    flex: 1,
+  },
+  appointmentTherapist: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  appointmentTime: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  appointmentsList: {
+    gap: 8,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    paddingVertical: 24,
   },
 });

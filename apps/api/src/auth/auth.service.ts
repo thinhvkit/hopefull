@@ -7,15 +7,23 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { FirebaseService } from '../firebase/firebase.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResendOtpDto } from './dto/resend-otp.dto';
+import { VerifyPhoneDto } from './dto/verify-phone.dto';
 import { UserRole } from '@prisma/client';
+
+const OTP_EXPIRY_MINUTES = 3;
+const MAX_OTP_ATTEMPTS = 3;
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private firebaseService: FirebaseService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -65,12 +73,16 @@ export class AuthService {
       },
     });
 
-    // Generate tokens
-    const tokens = this.generateTokens(user.id, user.role);
+    // Send OTP via SMS if phone provided, otherwise via email
+    if (user.phone) {
+      await this.sendOtpToUser(user.id, user.phone, 'SMS', 'VERIFICATION');
+    } else {
+      await this.sendOtpToUser(user.id, user.email, 'EMAIL', 'VERIFICATION');
+    }
 
     return {
       user,
-      ...tokens,
+      requiresVerification: true,
     };
   }
 
@@ -89,6 +101,24 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Check if phone verification is required
+    if (user.phone && !user.phoneVerified) {
+      // Send new OTP for verification
+      await this.sendOtpToUser(user.id, user.phone, 'SMS', 'VERIFICATION');
+
+      return {
+        requiresVerification: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+      };
+    }
+
     // Update last login
     await this.prisma.user.update({
       where: { id: user.id },
@@ -101,6 +131,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -135,6 +166,202 @@ export class AuthService {
     }
 
     return this.generateTokens(user.id, user.role);
+  }
+
+  async sendOtp(email: string, purpose: string = 'VERIFICATION') {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const destination = user.phone || user.email;
+    const type = user.phone ? 'SMS' : 'EMAIL';
+
+    return this.sendOtpToUser(user.id, destination, type, purpose);
+  }
+
+  private async sendOtpToUser(
+    userId: string,
+    destination: string,
+    type: 'SMS' | 'EMAIL',
+    purpose: string,
+  ) {
+    // Delete any existing OTPs for this user and purpose
+    await this.prisma.otpCode.deleteMany({
+      where: {
+        userId,
+        purpose,
+      },
+    });
+
+    // Generate 6-digit OTP
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Create OTP record
+    await this.prisma.otpCode.create({
+      data: {
+        userId,
+        code,
+        type,
+        purpose,
+        expiresAt: new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000),
+      },
+    });
+
+    if (type === 'SMS') {
+      // TODO: Integrate with SMS service (Twilio, AWS SNS, etc.)
+      console.log(`[DEV] SMS OTP for ${destination}: ${code}`);
+    } else {
+      // TODO: Integrate with email service (SendGrid, SES, etc.)
+      console.log(`[DEV] Email OTP for ${destination}: ${code}`);
+    }
+
+    return { message: `OTP sent via ${type}` };
+  }
+
+  async verifyOtp(dto: VerifyOtpDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const otpRecord = await this.prisma.otpCode.findFirst({
+      where: {
+        userId: user.id,
+        verified: false,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!otpRecord) {
+      throw new BadRequestException('No OTP found. Please request a new one.');
+    }
+
+    if (otpRecord.expiresAt < new Date()) {
+      throw new BadRequestException('OTP has expired. Please request a new one.');
+    }
+
+    if (otpRecord.attempts >= MAX_OTP_ATTEMPTS) {
+      throw new BadRequestException('Too many attempts. Please request a new OTP.');
+    }
+
+    if (otpRecord.code !== dto.otp) {
+      // Increment attempts
+      await this.prisma.otpCode.update({
+        where: { id: otpRecord.id },
+        data: { attempts: { increment: 1 } },
+      });
+      throw new UnauthorizedException('Invalid OTP code');
+    }
+
+    // Mark OTP as verified
+    await this.prisma.otpCode.update({
+      where: { id: otpRecord.id },
+      data: { verified: true },
+    });
+
+    // Mark email as verified if purpose was VERIFICATION
+    if (otpRecord.purpose === 'VERIFICATION') {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true },
+      });
+    }
+
+    // Generate tokens for the user
+    const tokens = this.generateTokens(user.id, user.role);
+
+    return {
+      verified: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatarUrl: user.avatarUrl,
+      },
+      ...tokens,
+    };
+  }
+
+  async resendOtp(dto: ResendOtpDto) {
+    return this.sendOtp(dto.email, 'VERIFICATION');
+  }
+
+  async verifyPhone(dto: VerifyPhoneDto) {
+    // Verify Firebase ID token
+    const decodedToken = await this.firebaseService.verifyIdToken(dto.idToken);
+
+    if (!decodedToken.phone_number) {
+      throw new BadRequestException('Phone number not found in token');
+    }
+
+    const phoneNumber = decodedToken.phone_number;
+
+    // Check if user exists with this phone number
+    let user = await this.prisma.user.findUnique({
+      where: { phone: phoneNumber },
+    });
+
+    if (dto.userId) {
+      // Link phone to existing user (after registration)
+      const existingUser = await this.prisma.user.findUnique({
+        where: { id: dto.userId },
+      });
+
+      if (!existingUser) {
+        throw new BadRequestException('User not found');
+      }
+
+      // Update user with verified phone
+      user = await this.prisma.user.update({
+        where: { id: dto.userId },
+        data: {
+          phone: phoneNumber,
+          phoneVerified: true,
+        },
+      });
+    } else if (!user) {
+      // Create new user with phone (phone-only registration)
+      user = await this.prisma.user.create({
+        data: {
+          email: `${phoneNumber.replace(/\+/g, '')}@phone.local`, // Placeholder email
+          phone: phoneNumber,
+          phoneVerified: true,
+          role: UserRole.USER,
+        },
+      });
+    } else {
+      // Existing user logging in with phone
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { phoneVerified: true },
+      });
+    }
+
+    // Generate tokens
+    const tokens = this.generateTokens(user.id, user.role);
+
+    return {
+      verified: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatarUrl: user.avatarUrl,
+      },
+      ...tokens,
+    };
   }
 
   private generateTokens(userId: string, role: UserRole) {

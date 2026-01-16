@@ -1,18 +1,18 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../src/store/auth';
-import { useEffect } from 'react';
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isLoading } = useAuthStore();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated]);
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <Text style={styles.logo}>Hopefull</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -65,6 +65,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 80,
     paddingBottom: 40,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     alignItems: 'center',

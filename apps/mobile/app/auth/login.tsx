@@ -33,6 +33,16 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       const response = await authService.login(email, password);
+
+      // Check if phone verification is required
+      if (response.requiresVerification && response.user?.phone) {
+        router.push({
+          pathname: '/auth/otp',
+          params: { phone: response.user.phone, userId: response.user.id, email: response.user.email },
+        });
+        return;
+      }
+
       await setTokens(response.accessToken, response.refreshToken);
       setUser(response.user);
       router.replace('/(tabs)');

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
   id: string;
@@ -16,12 +17,14 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  hasSeenOnboarding: boolean;
 
   // Actions
   setUser: (user: User | null) => void;
-  setTokens: (accessToken: string, refreshToken: string) => void;
-  logout: () => void;
+  setTokens: (accessToken: string, refreshToken: string) => Promise<void>;
+  logout: () => Promise<void>;
   loadStoredAuth: () => Promise<void>;
+  completeOnboarding: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -30,6 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   refreshToken: null,
   isAuthenticated: false,
   isLoading: true,
+  hasSeenOnboarding: false,
 
   setUser: (user) => {
     set({ user, isAuthenticated: !!user });
@@ -54,17 +58,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   loadStoredAuth: async () => {
     try {
-      const accessToken = await SecureStore.getItemAsync('accessToken');
-      const refreshToken = await SecureStore.getItemAsync('refreshToken');
+      const [accessToken, refreshToken, hasSeenOnboarding] = await Promise.all([
+        SecureStore.getItemAsync('accessToken'),
+        SecureStore.getItemAsync('refreshToken'),
+        AsyncStorage.getItem('hasSeenOnboarding'),
+      ]);
 
       if (accessToken && refreshToken) {
-        set({ accessToken, refreshToken });
-        // TODO: Validate token and fetch user profile
+        set({ accessToken, refreshToken, isAuthenticated: true });
+        // TODO: Fetch user profile from API to validate token
+        // For now, we just trust the tokens exist
       }
+
+      set({ hasSeenOnboarding: hasSeenOnboarding === 'true' });
     } catch (error) {
       console.error('Error loading stored auth:', error);
     } finally {
       set({ isLoading: false });
     }
+  },
+
+  completeOnboarding: async () => {
+    await AsyncStorage.setItem('hasSeenOnboarding', 'true');
+    set({ hasSeenOnboarding: true });
   },
 }));
