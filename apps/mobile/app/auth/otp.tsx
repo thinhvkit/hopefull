@@ -1,70 +1,75 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/ui';
-import { verifyOtp, resendOtp, verifyPhone } from '@/services/auth';
+import { verifyEmail } from '@/services/auth';
 import { useAuthStore } from '@/store/auth';
-import { getFirebaseAuth } from '@/config/firebase';
+import {
+  getFirebaseAuth,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
+} from '@/config/firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const OTP_LENGTH = 6;
-const OTP_EXPIRY_SECONDS = 180;
+const EMAIL_STORAGE_KEY = 'emailForSignIn';
 const RESEND_COOLDOWN_SECONDS = 60;
 
-// Feature flag for Firebase Auth
-// Set to false to use API OTP (works in Expo Go), true for Firebase Phone Auth (requires dev build)
-const USE_FIREBASE_AUTH = false
-
-export default function OTPScreen() {
-  const { phone, userId, email } = useLocalSearchParams<{
-    phone: string;
+export default function EmailVerifyScreen() {
+  const { email, userId } = useLocalSearchParams<{
+    email: string;
     userId?: string;
-    email?: string;
   }>();
-  const [confirmation, setConfirmation] = useState<any>(null);
-  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [expiryTime, setExpiryTime] = useState(OTP_EXPIRY_SECONDS);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [attempts, setAttempts] = useState(3);
-  const inputRefs = useRef<(TextInput | null)[]>([]);
   const { setUser, setTokens } = useAuthStore();
 
-  // Send OTP on mount (Firebase mode only)
+  // Send email link on mount
   useEffect(() => {
-    if (USE_FIREBASE_AUTH && phone) {
-      sendFirebaseOtp();
+    if (email) {
+      sendEmailLink();
     }
-  }, [phone]);
+  }, [email]);
 
-  // Countdown timer
+  // Countdown timer for resend
   useEffect(() => {
     const timer = setInterval(() => {
-      setExpiryTime((prev) => (prev > 0 ? prev - 1 : 0));
       setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
     return () => clearInterval(timer);
   }, []);
 
-  // Focus first input on mount (API mode)
+  // Listen for deep links
   useEffect(() => {
-    if (!USE_FIREBASE_AUTH) {
-      setTimeout(() => {
-        inputRefs.current[0]?.focus();
-      }, 100);
-    }
-  }, []);
+    const handleDeepLink = async (event: { url: string }) => {
+      await handleEmailLink(event.url);
+    };
+
+    // Check if app was opened with a link
+    Linking.getInitialURL().then((url) => {
+      if (url) handleEmailLink(url);
+    });
+
+    // Listen for new links
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [email]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -72,77 +77,47 @@ export default function OTPScreen() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Firebase OTP sending using React Native Firebase
-  const sendFirebaseOtp = async () => {
-    if (!phone) return;
+  const sendEmailLink = async () => {
+    if (!email) return;
 
-    setSendingOtp(true);
+    setSendingEmail(true);
     try {
-      const auth = getFirebaseAuth();
-      if (!auth) {
-        throw new Error('Firebase Auth not available. Please use a development build.');
-      }
-      const confirm = await auth().signInWithPhoneNumber(phone);
-      setConfirmation(confirm);
-      setExpiryTime(OTP_EXPIRY_SECONDS);
-      Alert.alert('OTP Sent', `Verification code sent to ${phone}`);
+      await sendSignInLinkToEmail(email);
+      // Store email for later verification
+      await AsyncStorage.setItem(EMAIL_STORAGE_KEY, email);
+      setEmailSent(true);
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (error: any) {
-      console.error('Error sending OTP:', error);
-      Alert.alert('Error', error.message || 'Failed to send verification code');
+      console.error('Error sending email link:', error);
+      Alert.alert('Error', error.message || 'Failed to send verification email');
     } finally {
-      setSendingOtp(false);
+      setSendingEmail(false);
     }
   };
 
-  const handleOtpChange = (value: string, index: number) => {
-    if (value.length > 1) {
-      // Handle paste
-      const pastedCode = value.slice(0, OTP_LENGTH).split('');
-      const newOtp = [...otp];
-      pastedCode.forEach((char, i) => {
-        if (i < OTP_LENGTH) newOtp[i] = char;
-      });
-      setOtp(newOtp);
-      inputRefs.current[Math.min(pastedCode.length, OTP_LENGTH - 1)]?.focus();
-    } else {
-      const newOtp = [...otp];
-      newOtp[index] = value;
-      setOtp(newOtp);
-
-      if (value && index < OTP_LENGTH - 1) {
-        inputRefs.current[index + 1]?.focus();
-      }
-    }
-  };
-
-  const handleKeyPress = (key: string, index: number) => {
-    if (key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  // Firebase verification using React Native Firebase
-  const handleFirebaseVerify = async () => {
-    const otpCode = otp.join('');
-    if (otpCode.length !== OTP_LENGTH) {
-      Alert.alert('Invalid OTP', 'Please enter the complete verification code');
-      return;
-    }
-
-    if (!confirmation) {
-      Alert.alert('Error', 'Verification session expired. Please request a new code.');
-      return;
-    }
+  const handleEmailLink = async (url: string) => {
+    if (!isSignInWithEmailLink(url)) return;
 
     setLoading(true);
     try {
-      const userCredential = await confirmation.confirm(otpCode);
-      if (!userCredential) {
-        throw new Error('Failed to verify code');
+      // Get stored email
+      const storedEmail = await AsyncStorage.getItem(EMAIL_STORAGE_KEY);
+      const emailToUse = storedEmail || email;
+
+      if (!emailToUse) {
+        Alert.alert('Error', 'Email not found. Please try again.');
+        return;
       }
+
+      // Sign in with email link
+      const userCredential = await signInWithEmailLink(emailToUse, url);
       const idToken = await userCredential.user.getIdToken();
 
-      const response = await verifyPhone(idToken, userId);
+      // Clear stored email
+      await AsyncStorage.removeItem(EMAIL_STORAGE_KEY);
+
+      // Verify with backend
+      const response = await verifyEmail(idToken, userId);
 
       if (response.accessToken && response.refreshToken) {
         await setTokens(response.accessToken, response.refreshToken);
@@ -151,102 +126,28 @@ export default function OTPScreen() {
 
       router.replace('/(tabs)');
     } catch (error: any) {
-      console.error('Verification error:', error);
-      setAttempts((prev) => prev - 1);
-
-      let message = 'Invalid verification code';
-      if (error.code === 'auth/invalid-verification-code') {
-        message = 'The verification code is incorrect';
-      } else if (error.code === 'auth/code-expired') {
-        message = 'The verification code has expired';
-      }
-
-      Alert.alert('Verification Failed', `${message}. ${attempts - 1} attempts remaining.`);
-      setOtp(Array(OTP_LENGTH).fill(''));
-      inputRefs.current[0]?.focus();
+      console.error('Email verification error:', error);
+      Alert.alert('Verification Failed', error.message || 'Failed to verify email');
     } finally {
       setLoading(false);
     }
   };
-
-  // API OTP verification
-  const handleApiVerify = async () => {
-    const otpCode = otp.join('');
-    if (otpCode.length !== OTP_LENGTH) {
-      Alert.alert('Invalid OTP', 'Please enter the complete verification code');
-      return;
-    }
-
-    if (expiryTime === 0) {
-      Alert.alert('OTP Expired', 'Please request a new verification code');
-      return;
-    }
-
-    if (attempts === 0) {
-      Alert.alert('Too Many Attempts', 'Please request a new verification code');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await verifyOtp(email || '', otpCode);
-
-      if (response.accessToken && response.refreshToken) {
-        await setTokens(response.accessToken, response.refreshToken);
-        setUser(response.user);
-        router.replace('/(tabs)');
-      } else {
-        Alert.alert('Success', 'Phone verified successfully');
-        router.replace('/(tabs)');
-      }
-    } catch (error: any) {
-      console.error('Verification error:', error);
-      setAttempts((prev) => prev - 1);
-
-      Alert.alert(
-        'Verification Failed',
-        `${error.message || 'Invalid verification code'}. ${attempts - 1} attempts remaining.`
-      );
-      setOtp(Array(OTP_LENGTH).fill(''));
-      inputRefs.current[0]?.focus();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerify = USE_FIREBASE_AUTH ? handleFirebaseVerify : handleApiVerify;
 
   const handleResend = async () => {
     if (resendCooldown > 0) return;
-
-    setOtp(Array(OTP_LENGTH).fill(''));
-    setAttempts(3);
-    setResendCooldown(RESEND_COOLDOWN_SECONDS);
-
-    if (USE_FIREBASE_AUTH) {
-      await sendFirebaseOtp();
-    } else {
-      try {
-        await resendOtp(email || '');
-        setExpiryTime(OTP_EXPIRY_SECONDS);
-        Alert.alert('OTP Sent', 'A new verification code has been sent');
-      } catch (error: any) {
-        Alert.alert('Error', error.message || 'Failed to resend OTP');
-      }
-    }
+    await sendEmailLink();
   };
 
-  const isOtpComplete = otp.every((digit) => digit !== '');
-  const isVerifyDisabled = USE_FIREBASE_AUTH
-    ? !isOtpComplete || !confirmation
-    : !isOtpComplete || expiryTime === 0 || attempts === 0;
+  const handleOpenEmail = () => {
+    // Try to open email app
+    Linking.openURL('mailto:');
+  };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-
       <View style={styles.content}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#111827" />
@@ -254,79 +155,60 @@ export default function OTPScreen() {
 
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <Ionicons name="phone-portrait-outline" size={48} color="#4F46E5" />
+            <Ionicons name="mail-outline" size={48} color="#4F46E5" />
           </View>
-          <Text style={styles.title}>Verify Your Phone</Text>
+          <Text style={styles.title}>Verify Your Email</Text>
           <Text style={styles.subtitle}>
-            We've sent a {OTP_LENGTH}-digit code to{'\n'}
-            <Text style={styles.highlight}>{phone}</Text>
+            {emailSent
+              ? `We've sent a verification link to\n`
+              : `We'll send a verification link to\n`}
+            <Text style={styles.highlight}>{email}</Text>
           </Text>
-          {__DEV__ && !USE_FIREBASE_AUTH && (
-            <Text style={styles.devNote}>
-              Dev Mode: Check API console for OTP code
-            </Text>
-          )}
-          {__DEV__ && USE_FIREBASE_AUTH && (
-            <Text style={styles.devNote}>
-              Firebase Auth Mode
-            </Text>
-          )}
         </View>
 
-        {USE_FIREBASE_AUTH && sendingOtp ? (
+        {sendingEmail ? (
           <View style={styles.sendingContainer}>
-            <Text style={styles.sendingText}>Sending verification code...</Text>
+            <Text style={styles.sendingText}>Sending verification email...</Text>
           </View>
-        ) : (
+        ) : emailSent ? (
           <>
-            <View style={styles.otpContainer}>
-              {otp.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  ref={(ref) => (inputRefs.current[index] = ref)}
-                  style={[
-                    styles.otpInput,
-                    digit && styles.otpInputFilled,
-                    expiryTime === 0 && styles.otpInputExpired,
-                  ]}
-                  value={digit}
-                  onChangeText={(value) => handleOtpChange(value, index)}
-                  onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  selectTextOnFocus
-                />
-              ))}
-            </View>
-
-            <View style={styles.timerContainer}>
-              {expiryTime > 0 ? (
-                <Text style={styles.timerText}>
-                  Code expires in{' '}
-                  <Text style={styles.timerValue}>{formatTime(expiryTime)}</Text>
-                </Text>
-              ) : (
-                <Text style={styles.expiredText}>Code has expired</Text>
-              )}
-            </View>
-
-            <View style={styles.attemptsContainer}>
-              <Text style={styles.attemptsText}>
-                {attempts} {attempts === 1 ? 'attempt' : 'attempts'} remaining
-              </Text>
+            <View style={styles.instructionsContainer}>
+              <View style={styles.instructionItem}>
+                <View style={styles.instructionNumber}>
+                  <Text style={styles.instructionNumberText}>1</Text>
+                </View>
+                <Text style={styles.instructionText}>Check your email inbox</Text>
+              </View>
+              <View style={styles.instructionItem}>
+                <View style={styles.instructionNumber}>
+                  <Text style={styles.instructionNumberText}>2</Text>
+                </View>
+                <Text style={styles.instructionText}>Click the verification link</Text>
+              </View>
+              <View style={styles.instructionItem}>
+                <View style={styles.instructionNumber}>
+                  <Text style={styles.instructionNumberText}>3</Text>
+                </View>
+                <Text style={styles.instructionText}>You'll be automatically signed in</Text>
+              </View>
             </View>
 
             <Button
-              title="Verify"
-              onPress={handleVerify}
-              loading={loading}
-              disabled={isVerifyDisabled}
+              title="Open Email App"
+              onPress={handleOpenEmail}
               fullWidth
-              style={styles.verifyButton}
+              style={styles.openEmailButton}
+              variant="outline"
             />
 
+            {loading && (
+              <View style={styles.verifyingContainer}>
+                <Text style={styles.verifyingText}>Verifying...</Text>
+              </View>
+            )}
+
             <View style={styles.resendContainer}>
-              <Text style={styles.resendText}>Didn't receive the code?</Text>
+              <Text style={styles.resendText}>Didn't receive the email?</Text>
               <TouchableOpacity onPress={handleResend} disabled={resendCooldown > 0}>
                 <Text
                   style={[
@@ -336,13 +218,26 @@ export default function OTPScreen() {
                 >
                   {resendCooldown > 0
                     ? `Resend in ${formatTime(resendCooldown)}`
-                    : 'Resend Code'}
+                    : 'Resend Email'}
                 </Text>
               </TouchableOpacity>
             </View>
-          </>
-        )}
 
+            <View style={styles.spamNote}>
+              <Ionicons name="information-circle-outline" size={16} color="#9CA3AF" />
+              <Text style={styles.spamNoteText}>
+                Check your spam folder if you don't see the email
+              </Text>
+            </View>
+          </>
+        ) : (
+          <Button
+            title="Send Verification Email"
+            onPress={sendEmailLink}
+            fullWidth
+            loading={sendingEmail}
+          />
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -396,12 +291,6 @@ const styles = StyleSheet.create({
     color: '#4F46E5',
     fontWeight: '600',
   },
-  devNote: {
-    marginTop: 12,
-    fontSize: 12,
-    color: '#F59E0B',
-    fontStyle: 'italic',
-  },
   sendingContainer: {
     alignItems: 'center',
     paddingVertical: 40,
@@ -410,63 +299,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
   },
-  otpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
+  instructionsContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 24,
   },
-  otpInput: {
-    width: 48,
-    height: 56,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#F9FAFB',
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#111827',
-  },
-  otpInputFilled: {
-    borderColor: '#4F46E5',
-    backgroundColor: '#EEF2FF',
-  },
-  otpInputExpired: {
-    borderColor: '#EF4444',
-    backgroundColor: '#FEE2E2',
-  },
-  timerContainer: {
+  instructionItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    gap: 16,
+    marginBottom: 16,
   },
-  timerText: {
+  instructionNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#4F46E5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  instructionNumberText: {
+    color: '#FFFFFF',
     fontSize: 14,
-    color: '#6B7280',
-  },
-  timerValue: {
-    color: '#4F46E5',
     fontWeight: '600',
   },
-  expiredText: {
-    fontSize: 14,
-    color: '#EF4444',
-    fontWeight: '500',
+  instructionText: {
+    flex: 1,
+    fontSize: 15,
+    color: '#374151',
   },
-  attemptsContainer: {
+  openEmailButton: {
+    marginBottom: 24,
+  },
+  verifyingContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  attemptsText: {
-    fontSize: 13,
-    color: '#9CA3AF',
-  },
-  verifyButton: {
-    marginBottom: 24,
+  verifyingText: {
+    fontSize: 14,
+    color: '#4F46E5',
+    fontWeight: '500',
   },
   resendContainer: {
     alignItems: 'center',
     gap: 8,
+    marginBottom: 24,
   },
   resendText: {
     fontSize: 14,
@@ -478,6 +356,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   resendLinkDisabled: {
+    color: '#9CA3AF',
+  },
+  spamNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  spamNoteText: {
+    fontSize: 13,
     color: '#9CA3AF',
   },
 });

@@ -15,7 +15,6 @@ export function getFirebaseAuth() {
 // Export types for convenience
 export type FirebaseAuth = typeof auth;
 export type AuthConfirmationResult = FirebaseAuthTypes.ConfirmationResult;
-export type PhoneAuthProvider = typeof FirebaseAuthTypes.PhoneAuthProvider;
 
 // Helper to sign in with phone number
 export async function signInWithPhoneNumber(
@@ -43,4 +42,57 @@ export async function getIdToken(): Promise<string | null> {
 // Sign out from Firebase
 export async function signOutFirebase(): Promise<void> {
   return auth().signOut();
+}
+
+// Email link authentication settings
+const actionCodeSettings: FirebaseAuthTypes.ActionCodeSettings = {
+  url: 'https://hopefull.page.link/verify', // Dynamic link domain
+  handleCodeInApp: true,
+  iOS: {
+    bundleId: 'com.hopefull.app',
+  },
+  android: {
+    packageName: 'com.hopefull.app',
+    installApp: true,
+    minimumVersion: '21',
+  },
+};
+
+// Send email sign-in link
+export async function sendSignInLinkToEmail(email: string): Promise<void> {
+  return auth().sendSignInLinkToEmail(email, actionCodeSettings);
+}
+
+// Check if link is a sign-in link
+export function isSignInWithEmailLink(link: string): boolean {
+  return auth().isSignInWithEmailLink(link);
+}
+
+// Complete sign-in with email link
+export async function signInWithEmailLink(
+  email: string,
+  link: string
+): Promise<FirebaseAuthTypes.UserCredential> {
+  return auth().signInWithEmailLink(email, link);
+}
+
+// Send email verification to current user
+export async function sendEmailVerification(): Promise<void> {
+  const user = auth().currentUser;
+  if (!user) throw new Error('No user signed in');
+  return user.sendEmailVerification();
+}
+
+// Check if email is verified
+export function isEmailVerified(): boolean {
+  const user = auth().currentUser;
+  return user?.emailVerified ?? false;
+}
+
+// Reload user to get updated verification status
+export async function reloadUser(): Promise<void> {
+  const user = auth().currentUser;
+  if (user) {
+    await user.reload();
+  }
 }

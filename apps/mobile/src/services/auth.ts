@@ -56,8 +56,12 @@ export async function verifyOtp(email: string, otp: string): Promise<LoginRespon
   return response.data;
 }
 
-export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
-  const response = await api.post('/auth/reset-password', { token, password });
+export async function resetPassword(
+  email: string,
+  otp: string,
+  newPassword: string
+): Promise<{ message: string }> {
+  const response = await api.post('/auth/reset-password', { email, otp, newPassword });
   return response.data;
 }
 
@@ -74,6 +78,35 @@ export async function verifyPhone(
   return response.data;
 }
 
+export async function verifyEmail(
+  idToken: string,
+  userId?: string
+): Promise<LoginResponse> {
+  const response = await api.post('/auth/verify-email', { idToken, userId });
+  return response.data;
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ message: string }> {
+  const response = await api.post('/auth/change-password', { currentPassword, newPassword });
+  return response.data;
+}
+
+export async function socialAuth(
+  provider: 'google' | 'apple',
+  idToken: string,
+  additionalData?: { firstName?: string; lastName?: string }
+): Promise<LoginResponse & { isNewUser?: boolean }> {
+  const response = await api.post('/auth/social', {
+    provider,
+    idToken,
+    ...additionalData,
+  });
+  return response.data;
+}
+
 export const authService = {
   login,
   register,
@@ -84,4 +117,9 @@ export const authService = {
   resetPassword,
   resendOtp,
   verifyPhone,
+  verifyEmail,
+  changePassword,
+  socialAuth,
 };
+
+export type { LoginResponse, RegisterRequest };

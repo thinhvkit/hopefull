@@ -35,30 +35,40 @@ api.interceptors.request.use(
   }
 );
 
+// Flag to prevent token refresh during logout
+let isLoggingOut = false;
+
+export const setLoggingOut = (value: boolean) => {
+  isLoggingOut = value;
+};
+
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle 401 errors (unauthorized)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Handle 401 errors (unauthorized) - skip if logging out
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoggingOut) {
       originalRequest._retry = true;
 
       try {
         const refreshToken = await SecureStore.getItemAsync('refreshToken');
-        if (refreshToken) {
+        if (refreshToken && !isLoggingOut) {
           const response = await axios.post(`${API_URL}/auth/refresh`, null, {
             headers: { Authorization: `Bearer ${refreshToken}` },
           });
 
           const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-          await SecureStore.setItemAsync('accessToken', accessToken);
-          await SecureStore.setItemAsync('refreshToken', newRefreshToken);
+          // Double-check we're not logging out before saving new tokens
+          if (!isLoggingOut) {
+            await SecureStore.setItemAsync('accessToken', accessToken);
+            await SecureStore.setItemAsync('refreshToken', newRefreshToken);
 
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return api(originalRequest);
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            return api(originalRequest);
+          }
         }
       } catch (refreshError) {
         // Clear tokens and redirect to login
@@ -76,3 +86,5 @@ api.interceptors.response.use(
     return Promise.reject(new Error(message));
   }
 );
+
+export default api;

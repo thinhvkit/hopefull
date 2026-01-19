@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hopefull.app",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "We need camera access for video calls and profile photos",
         "NSMicrophoneUsageDescription": "We need microphone access for video and audio calls",
@@ -68,7 +69,9 @@
         {
           "photosPermission": "Allow Hopefull to access your photos to upload a profile picture"
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin",
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,24 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Switch,
+  Platform,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/auth';
 import { Avatar, Card, Button } from '@/components/ui';
+import {
+  getBiometricStatus,
+  enableBiometric,
+  disableBiometric,
+  BiometricStatus,
+} from '@/services/biometric';
+import { authService } from '@/services/auth';
 
 interface MenuItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -48,7 +61,95 @@ function MenuItem({
 }
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, biometricEnabled, setBiometricEnabled } = useAuthStore();
+  const [biometricStatus, setBiometricStatus] = useState<BiometricStatus | null>(null);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    checkBiometricStatus();
+  }, []);
+
+  const checkBiometricStatus = async () => {
+    const status = await getBiometricStatus();
+    setBiometricStatus(status);
+  };
+
+  const handleEnableBiometric = async () => {
+    if (!password.trim()) {
+      Alert.alert('Error', 'Please enter your password');
+      return;
+    }
+
+    if (!user?.email) {
+      Alert.alert('Error', 'User email not found');
+      setShowPasswordModal(false);
+      setPassword('');
+      return;
+    }
+
+    setBiometricLoading(true);
+
+    try {
+      // Validate password by attempting login
+      await authService.login(user.email, password);
+
+      // Password is correct, now enable biometric
+      setShowPasswordModal(false);
+      const success = await enableBiometric({ email: user.email, password });
+
+      if (success) {
+        setBiometricEnabled(true);
+        await checkBiometricStatus();
+        Alert.alert('Success', `${biometricStatus?.biometricName} login enabled`);
+      } else {
+        Alert.alert('Failed', 'Could not enable biometric login. Please try again.');
+      }
+    } catch (error: any) {
+      // Password validation failed
+      Alert.alert(
+        'Invalid Password',
+        error.response?.data?.message || 'The password you entered is incorrect. Please try again.'
+      );
+    } finally {
+      setBiometricLoading(false);
+      setPassword('');
+    }
+  };
+
+  const handleBiometricToggle = (value: boolean) => {
+    if (biometricLoading) return;
+
+    if (value) {
+      // Enable biometric - show password modal
+      setPassword('');
+      setShowPasswordModal(true);
+    } else {
+      // Disable biometric
+      Alert.alert(
+        'Disable Biometric Login',
+        `Are you sure you want to disable ${biometricStatus?.biometricName} login?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Disable',
+            style: 'destructive',
+            onPress: async () => {
+              setBiometricLoading(true);
+              try {
+                await disableBiometric();
+                setBiometricEnabled(false);
+                await checkBiometricStatus();
+              } finally {
+                setBiometricLoading(false);
+              }
+            },
+          },
+        ]
+      );
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -60,8 +161,10 @@ export default function ProfileScreen() {
           text: 'Sign Out',
           style: 'destructive',
           onPress: async () => {
+            console.log('Logout: starting');
             await logout();
-            router.canGoBack() ? router.back() : router.replace('/');
+            console.log('Logout: complete - RootLayout will redirect');
+            // RootLayout handles redirect via <Redirect> component
           },
         },
       ]
@@ -120,6 +223,35 @@ export default function ProfileScreen() {
           onPress={() => router.push('/profile/security')}
         />
       </Card>
+
+      {/* Biometric Section */}
+      {biometricStatus?.isAvailable && (
+        <Card style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Security</Text>
+          <View style={styles.biometricItem}>
+            <View style={styles.menuIcon}>
+              <Ionicons
+                name={Platform.OS === 'ios' && biometricStatus.biometricType === 'facial' ? 'scan' : 'finger-print'}
+                size={20}
+                color="#4F46E5"
+              />
+            </View>
+            <View style={styles.biometricTextContainer}>
+              <Text style={styles.menuLabel}>{biometricStatus.biometricName} Login</Text>
+              <Text style={styles.biometricDescription}>
+                Quick sign in with {biometricStatus.biometricType === 'facial' ? 'your face' : 'your fingerprint'}
+              </Text>
+            </View>
+            <Switch
+              value={biometricEnabled}
+              onValueChange={handleBiometricToggle}
+              disabled={biometricLoading}
+              trackColor={{ false: '#E5E7EB', true: '#C7D2FE' }}
+              thumbColor={biometricEnabled ? '#4F46E5' : '#9CA3AF'}
+            />
+          </View>
+        </Card>
+      )}
 
       <Card style={styles.menuSection}>
         <Text style={styles.sectionTitle}>Preferences</Text>
@@ -199,6 +331,57 @@ export default function ProfileScreen() {
       </Card>
 
       <Text style={styles.versionText}>Version 1.0.0</Text>
+
+      {/* Password Modal for Biometric Setup */}
+      <Modal
+        visible={showPasswordModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPasswordModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Enable {biometricStatus?.biometricName} Login</Text>
+            <Text style={styles.modalSubtitle}>
+              Enter your password to enable biometric login
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoFocus
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowPasswordModal(false);
+                  setPassword('');
+                }}
+                disabled={biometricLoading}
+              >
+                <Text style={styles.modalButtonCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonEnable, biometricLoading && styles.modalButtonDisabled]}
+                onPress={handleEnableBiometric}
+                disabled={biometricLoading}
+              >
+                {biometricLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.modalButtonEnableText}>Enable</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -320,5 +503,87 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9CA3AF',
     paddingVertical: 24,
+  },
+  biometricItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  biometricTextContainer: {
+    flex: 1,
+  },
+  biometricDescription: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 340,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#111827',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: '#F3F4F6',
+  },
+  modalButtonCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  modalButtonEnable: {
+    backgroundColor: '#4F46E5',
+  },
+  modalButtonDisabled: {
+    opacity: 0.7,
+  },
+  modalButtonEnableText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

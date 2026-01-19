@@ -13,6 +13,11 @@ import { LoginDto } from './dto/login.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { VerifyPhoneDto } from './dto/verify-phone.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { SocialAuthDto } from './dto/social-auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Authentication')
@@ -64,5 +69,37 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify phone number via Firebase Phone Auth' })
   async verifyPhone(@Body() dto: VerifyPhoneDto) {
     return this.authService.verifyPhone(dto);
+  }
+
+  @Post('verify-email')
+  @ApiOperation({ summary: 'Verify email via Firebase Email Link Auth' })
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset OTP' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password with OTP' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change password for authenticated user' })
+  async changePassword(@Request() req: any, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(req.user.id, dto);
+  }
+
+  @Post('social')
+  @ApiOperation({ summary: 'Sign in with social provider (Google/Apple)' })
+  async socialAuth(@Body() dto: SocialAuthDto) {
+    return this.authService.socialAuth(dto);
   }
 }

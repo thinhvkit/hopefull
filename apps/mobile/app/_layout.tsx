@@ -1,9 +1,10 @@
 import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { useAuthStore } from '@/store/auth';
+import { configureGoogleSignIn } from '@/services/social-auth';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,6 +22,7 @@ function useProtectedRoute() {
   const segments = useSegments();
   const router = useRouter();
   const navigationState = useRootNavigationState();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
     if (!navigationState?.key || isLoading) return;
@@ -28,8 +30,14 @@ function useProtectedRoute() {
     const inAuthGroup = segments[0] === 'auth';
     const inTabsGroup = segments[0] === '(tabs)';
     const inOnboarding = segments[0] === 'onboarding';
-
     const isOnWelcome = segments.length === 0 || segments[0] === 'index';
+
+    if (__DEV__) {
+      console.log('=== useProtectedRoute ===');
+      console.log('isAuthenticated:', isAuthenticated);
+      console.log('segments:', segments);
+      console.log('========================');
+    }
 
     // First time user - show onboarding
     if (!hasSeenOnboarding && !inOnboarding) {
@@ -38,16 +46,20 @@ function useProtectedRoute() {
     }
 
     // Not authenticated and trying to access protected routes (tabs)
+    // Note: Tabs layout handles its own redirect via <Redirect> component
     if (!isAuthenticated && inTabsGroup) {
-      router.replace('/');
+      if (__DEV__) console.log('Not authenticated in tabs - tabs layout will redirect');
       return;
     }
 
     // Authenticated and on auth/welcome screens - go to tabs
     if (isAuthenticated && (inAuthGroup || isOnWelcome)) {
+      if (__DEV__) console.log('Redirect: welcome/auth -> tabs');
       router.replace('/(tabs)');
       return;
     }
+
+    hasRedirected.current = false;
   }, [isAuthenticated, segments, isLoading, navigationState?.key, hasSeenOnboarding]);
 }
 
@@ -56,6 +68,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     const init = async () => {
+      // Configure Google Sign-In
+      configureGoogleSignIn();
+
       await loadStoredAuth();
       await SplashScreen.hideAsync();
     };

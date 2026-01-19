@@ -13,6 +13,11 @@ import { LoginDto } from './dto/login.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { VerifyPhoneDto } from './dto/verify-phone.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { SocialAuthDto, SocialProvider } from './dto/social-auth.dto';
 import { UserRole } from '@prisma/client';
 
 const OTP_EXPIRY_MINUTES = 3;
@@ -364,6 +369,178 @@ export class AuthService {
     };
   }
 
+  async verifyEmail(dto: VerifyEmailDto) {
+    // Verify Firebase ID token
+    const decodedToken = await this.firebaseService.verifyIdToken(dto.idToken);
+
+    if (!decodedToken.email) {
+      throw new BadRequestException('Email not found in token');
+    }
+
+    const email = decodedToken.email;
+
+    // Check if user exists with this email
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (dto.userId) {
+      // Link email verification to existing user (after registration)
+      const existingUser = await this.prisma.user.findUnique({
+        where: { id: dto.userId },
+      });
+
+      if (!existingUser) {
+        throw new BadRequestException('User not found');
+      }
+
+      // Update user with verified email
+      user = await this.prisma.user.update({
+        where: { id: dto.userId },
+        data: {
+          emailVerified: true,
+        },
+      });
+    } else if (!user) {
+      // Create new user with email (email-only registration via Firebase)
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          emailVerified: true,
+          role: UserRole.USER,
+        },
+      });
+    } else {
+      // Existing user verifying email
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true },
+      });
+    }
+
+    // Generate tokens
+    const tokens = this.generateTokens(user.id, user.role);
+
+    return {
+      verified: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatarUrl: user.avatarUrl,
+      },
+      ...tokens,
+    };
+  }
+
+  async socialAuth(dto: SocialAuthDto) {
+    // Verify Firebase ID token
+    const decodedToken = await this.firebaseService.verifyIdToken(dto.idToken);
+
+    if (!decodedToken.email) {
+      throw new BadRequestException('Email not found in social account');
+    }
+
+    const email = decodedToken.email;
+    const firebaseUid = decodedToken.uid;
+
+    // Check if user exists with this email
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    const isNewUser = !user;
+
+    if (!user) {
+      // Create new user from social sign-in
+      // Extract name from token or use provided names (Apple provides on first sign-in)
+      const firstName =
+        dto.firstName ||
+        decodedToken.name?.split(' ')[0] ||
+        decodedToken.given_name ||
+        null;
+      const lastName =
+        dto.lastName ||
+        decodedToken.name?.split(' ').slice(1).join(' ') ||
+        decodedToken.family_name ||
+        null;
+
+      const createData: any = {
+        email,
+        emailVerified: true,
+        firstName,
+        lastName,
+        avatarUrl: decodedToken.picture || null,
+        role: UserRole.USER,
+      };
+
+      // Set provider-specific ID
+      if (dto.provider === SocialProvider.GOOGLE) {
+        createData.googleId = firebaseUid;
+      } else if (dto.provider === SocialProvider.APPLE) {
+        createData.appleId = firebaseUid;
+      }
+
+      user = await this.prisma.user.create({
+        data: createData,
+      });
+    } else {
+      // Existing user - link social account if not already linked
+      const updateData: any = {
+        emailVerified: true,
+        lastLoginAt: new Date(),
+      };
+
+      // Link Google account if not already linked
+      if (dto.provider === SocialProvider.GOOGLE && !user.googleId) {
+        updateData.googleId = firebaseUid;
+      }
+
+      // Link Apple account if not already linked
+      if (dto.provider === SocialProvider.APPLE && !user.appleId) {
+        updateData.appleId = firebaseUid;
+      }
+
+      // Update avatar if not set
+      if (!user.avatarUrl && decodedToken.picture) {
+        updateData.avatarUrl = decodedToken.picture;
+      }
+
+      // Update name if not set (for Apple sign-in which provides name only on first sign-in)
+      if (!user.firstName && (dto.firstName || decodedToken.given_name)) {
+        updateData.firstName = dto.firstName || decodedToken.given_name;
+      }
+      if (!user.lastName && (dto.lastName || decodedToken.family_name)) {
+        updateData.lastName = dto.lastName || decodedToken.family_name;
+      }
+
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: updateData,
+      });
+    }
+
+    // Generate tokens
+    const tokens = this.generateTokens(user.id, user.role);
+
+    return {
+      isNewUser,
+      user: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatarUrl: user.avatarUrl,
+      },
+      ...tokens,
+    };
+  }
+
   private generateTokens(userId: string, role: UserRole) {
     const payload = { sub: userId, role };
 
@@ -371,6 +548,125 @@ export class AuthService {
       accessToken: this.jwtService.sign(payload),
       refreshToken: this.jwtService.sign(payload, { expiresIn: '30d' }),
     };
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return { message: 'If the email exists, an OTP has been sent' };
+    }
+
+    // Send OTP for password reset
+    await this.sendOtpToUser(user.id, user.email, 'EMAIL', 'PASSWORD_RESET');
+
+    return { message: 'If the email exists, an OTP has been sent' };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.passwordHash) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Validate new password
+    this.validatePassword(dto.newPassword);
+
+    // Check that new password is different from current
+    const isSamePassword = await bcrypt.compare(dto.newPassword, user.passwordHash);
+    if (isSamePassword) {
+      throw new BadRequestException('New password must be different from current password');
+    }
+
+    // Hash and update password
+    const passwordHash = await bcrypt.hash(dto.newPassword, 12);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return { message: 'Password changed successfully' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid request');
+    }
+
+    // Find the OTP record for password reset
+    const otpRecord = await this.prisma.otpCode.findFirst({
+      where: {
+        userId: user.id,
+        purpose: 'PASSWORD_RESET',
+        verified: false,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!otpRecord) {
+      throw new BadRequestException('No OTP found. Please request a new one.');
+    }
+
+    if (otpRecord.expiresAt < new Date()) {
+      throw new BadRequestException('OTP has expired. Please request a new one.');
+    }
+
+    if (otpRecord.attempts >= MAX_OTP_ATTEMPTS) {
+      throw new BadRequestException('Too many attempts. Please request a new OTP.');
+    }
+
+    if (otpRecord.code !== dto.otp) {
+      // Increment attempts
+      await this.prisma.otpCode.update({
+        where: { id: otpRecord.id },
+        data: { attempts: { increment: 1 } },
+      });
+      throw new UnauthorizedException('Invalid OTP code');
+    }
+
+    // Validate new password
+    this.validatePassword(dto.newPassword);
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(dto.newPassword, 12);
+
+    // Update user password
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    });
+
+    // Mark OTP as verified
+    await this.prisma.otpCode.update({
+      where: { id: otpRecord.id },
+      data: { verified: true },
+    });
+
+    // Delete all password reset OTPs for this user
+    await this.prisma.otpCode.deleteMany({
+      where: {
+        userId: user.id,
+        purpose: 'PASSWORD_RESET',
+      },
+    });
+
+    return { message: 'Password reset successfully' };
   }
 
   private validatePassword(password: string) {

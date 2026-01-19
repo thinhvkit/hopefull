@@ -1,10 +1,43 @@
+import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/store/auth';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+
+// Module-level flag to prevent redirect loops
+let isRedirectingToWelcome = false;
 
 export default function TabsLayout() {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, isLoading } = useAuthStore();
   const isTherapist = user?.role === 'THERAPIST';
+  const navigation = useNavigation();
+
+  // Redirect to welcome if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && !isRedirectingToWelcome) {
+      console.log('TabsLayout: Not authenticated, resetting to welcome');
+      isRedirectingToWelcome = true;
+
+      // Get root navigator and reset it
+      const rootNav = navigation.getParent() || navigation;
+      rootNav.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'index' }],
+        })
+      );
+
+      // Reset flag after navigation settles
+      setTimeout(() => {
+        isRedirectingToWelcome = false;
+      }, 1000);
+    }
+  }, [isLoading, isAuthenticated, navigation]);
+
+  // Show nothing while redirecting
+  if (!isLoading && !isAuthenticated) {
+    return null;
+  }
 
   return (
     <Tabs

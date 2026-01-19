@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,15 +14,49 @@ import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/store/auth';
 import { authService } from '../../src/services/auth';
+import {
+  getBiometricStatus,
+  getCredentialsWithBiometric,
+  isBiometricAvailable,
+  BiometricStatus,
+  debugBiometricStorage,
+} from '../../src/services/biometric';
+import {
+  signInWithGoogle,
+  signInWithApple,
+  isAppleSignInAvailable,
+} from '../../src/services/social-auth';
+import * as SecureStore from 'expo-secure-store';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { setUser, setTokens } = useAuthStore();
+  const { setUser, setTokens, biometricEnabled, hasOfferedBiometric, setHasOfferedBiometric } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [biometricStatus, setBiometricStatus] = useState<BiometricStatus | null>(null);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  useEffect(() => {
+    checkBiometricStatus();
+    checkAppleAvailability();
+  }, []);
+
+  const checkBiometricStatus = async () => {
+    await debugBiometricStorage(); // Debug: check storage state
+    const status = await getBiometricStatus();
+    setBiometricStatus(status);
+  };
+
+  const checkAppleAvailability = async () => {
+    const available = await isAppleSignInAvailable();
+    setAppleAvailable(available);
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -37,9 +71,59 @@ export default function LoginScreen() {
       // Check if phone verification is required
       if (response.requiresVerification && response.user?.phone) {
         router.push({
-          pathname: '/auth/otp',
-          params: { phone: response.user.phone, userId: response.user.id, email: response.user.email },
+          pathname: '/auth/phone-verify',
+          params: { phone: response.user.phone, userId: response.user.id },
         });
+        return;
+      }
+
+      await setTokens(response.accessToken, response.refreshToken);
+      setUser(response.user);
+
+      // Check if we should offer biometric setup
+      const biometricAvailable = await isBiometricAvailable();
+      if (biometricAvailable && !hasOfferedBiometric && !biometricEnabled) {
+        await setHasOfferedBiometric(true);
+        // Store credentials temporarily for biometric setup (route params can lose special chars)
+        await SecureStore.setItemAsync('temp_biometric_setup', JSON.stringify({ email, password }));
+        router.push('/auth/biometric-setup');
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    if (!biometricStatus?.isEnabled) return;
+
+    setBiometricLoading(true);
+    try {
+      const credentials = await getCredentialsWithBiometric();
+
+      console.log('Retrieved credentials via biometric:', credentials);
+      if (!credentials) {
+        // User cancelled or biometric failed
+        setBiometricLoading(false);
+        return;
+      }
+
+
+      // Login with stored credentials
+      const response = await authService.login(credentials.email, credentials.password);
+
+      if (response.requiresVerification) {
+        Alert.alert('Verification Required', 'Please login with your password');
+        setBiometricLoading(false);
+        return;
+      }
+
+      if (!response.accessToken || !response.refreshToken) {
+        Alert.alert('Login Failed', 'Please login with your password');
+        setBiometricLoading(false);
         return;
       }
 
@@ -47,9 +131,69 @@ export default function LoginScreen() {
       setUser(response.user);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Login failed');
+      Alert.alert('Login Failed', 'Please login with your password');
     } finally {
-      setIsLoading(false);
+      setBiometricLoading(false);
+    }
+  };
+
+  const getBiometricIcon = () => {
+    if (!biometricStatus) return 'finger-print';
+    if (Platform.OS === 'ios') {
+      return biometricStatus.biometricType === 'facial' ? 'scan' : 'finger-print';
+    }
+    return biometricStatus.biometricType === 'facial' ? 'happy-outline' : 'finger-print';
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+
+      if (result.cancelled) {
+        setGoogleLoading(false);
+        return;
+      }
+
+      if (!result.success) {
+        Alert.alert('Error', result.error || 'Google Sign-In failed');
+        setGoogleLoading(false);
+        return;
+      }
+
+      await setTokens(result.accessToken, result.refreshToken);
+      setUser(result.user);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Google Sign-In failed');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setAppleLoading(true);
+    try {
+      const result = await signInWithApple();
+
+      if (result.cancelled) {
+        setAppleLoading(false);
+        return;
+      }
+
+      if (!result.success) {
+        Alert.alert('Error', result.error || 'Apple Sign-In failed');
+        setAppleLoading(false);
+        return;
+      }
+
+      await setTokens(result.accessToken, result.refreshToken);
+      setUser(result.user);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Apple Sign-In failed');
+    } finally {
+      setAppleLoading(false);
     }
   };
 
@@ -122,22 +266,71 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
-        <View style={styles.divider}>
+        {/* Biometric Login Button */}
+        {biometricStatus?.isEnabled && biometricEnabled && (
+          <>
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.biometricButton, biometricLoading && styles.buttonDisabled]}
+              onPress={handleBiometricLogin}
+              disabled={biometricLoading}
+            >
+              {biometricLoading ? (
+                <ActivityIndicator color="#4F46E5" />
+              ) : (
+                <>
+                  <Ionicons name={getBiometricIcon()} size={24} color="#4F46E5" />
+                  <Text style={styles.biometricButtonText}>
+                    Login with {biometricStatus.biometricName}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Social Login Buttons */}
+        <View style={styles.dividerContainer}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>or continue with</Text>
           <View style={styles.dividerLine} />
         </View>
 
         <View style={styles.socialButtons}>
-          <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-google" size={20} color="#111827" />
-            <Text style={styles.socialButtonText}>Google</Text>
+          <TouchableOpacity
+            style={[styles.socialButton, googleLoading && styles.buttonDisabled]}
+            onPress={handleGoogleSignIn}
+            disabled={googleLoading || isLoading}
+          >
+            {googleLoading ? (
+              <ActivityIndicator size="small" color="#111827" />
+            ) : (
+              <>
+                <Ionicons name="logo-google" size={20} color="#111827" />
+                <Text style={styles.socialButtonText}>Google</Text>
+              </>
+            )}
           </TouchableOpacity>
 
-          {Platform.OS === 'ios' && (
-            <TouchableOpacity style={styles.socialButton}>
-              <Ionicons name="logo-apple" size={20} color="#111827" />
-              <Text style={styles.socialButtonText}>Apple</Text>
+          {appleAvailable && (
+            <TouchableOpacity
+              style={[styles.socialButton, appleLoading && styles.buttonDisabled]}
+              onPress={handleAppleSignIn}
+              disabled={appleLoading || isLoading}
+            >
+              {appleLoading ? (
+                <ActivityIndicator size="small" color="#111827" />
+              ) : (
+                <>
+                  <Ionicons name="logo-apple" size={20} color="#111827" />
+                  <Text style={styles.socialButtonText}>Apple</Text>
+                </>
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -233,7 +426,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
+  biometricButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#4F46E5',
+    backgroundColor: '#EEF2FF',
+    gap: 12,
+  },
+  biometricButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4F46E5',
+  },
   divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 24,

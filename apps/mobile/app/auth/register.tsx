@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,20 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Input } from '@/components/ui';
 import { register } from '@/services/auth';
+import { useAuthStore } from '@/store/auth';
+import {
+  signInWithGoogle,
+  signInWithApple,
+  isAppleSignInAvailable,
+} from '@/services/social-auth';
+
+type VerificationMethod = 'email' | 'phone';
 
 interface FormData {
   email: string;
@@ -22,6 +31,7 @@ interface FormData {
   firstName: string;
   lastName: string;
   acceptTerms: boolean;
+  verificationMethod: VerificationMethod;
 }
 
 interface FormErrors {
@@ -44,8 +54,12 @@ const PASSWORD_REQUIREMENTS = [
 
 export default function RegisterScreen() {
   const { role = 'USER' } = useLocalSearchParams<{ role?: string }>();
+  const { setUser, setTokens } = useAuthStore();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: '',
     phone: '',
@@ -54,8 +68,70 @@ export default function RegisterScreen() {
     firstName: '',
     lastName: '',
     acceptTerms: false,
+    verificationMethod: 'email',
   });
   const [errors, setErrors] = useState<FormErrors>({});
+
+  useEffect(() => {
+    checkAppleAvailability();
+  }, []);
+
+  const checkAppleAvailability = async () => {
+    const available = await isAppleSignInAvailable();
+    setAppleAvailable(available);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+
+      if (result.cancelled) {
+        setGoogleLoading(false);
+        return;
+      }
+
+      if (!result.success) {
+        Alert.alert('Error', result.error || 'Google Sign-In failed');
+        setGoogleLoading(false);
+        return;
+      }
+
+      await setTokens(result.accessToken, result.refreshToken);
+      setUser(result.user);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Google Sign-In failed');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setAppleLoading(true);
+    try {
+      const result = await signInWithApple();
+
+      if (result.cancelled) {
+        setAppleLoading(false);
+        return;
+      }
+
+      if (!result.success) {
+        Alert.alert('Error', result.error || 'Apple Sign-In failed');
+        setAppleLoading(false);
+        return;
+      }
+
+      await setTokens(result.accessToken, result.refreshToken);
+      setUser(result.user);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Apple Sign-In failed');
+    } finally {
+      setAppleLoading(false);
+    }
+  };
 
   const validateStep1 = (): boolean => {
     const newErrors: FormErrors = {};
@@ -136,11 +212,18 @@ export default function RegisterScreen() {
         role: role as 'USER' | 'THERAPIST',
       });
 
-      // Navigate to OTP verification with user ID and email for linking
-      router.push({
-        pathname: '/auth/otp',
-        params: { phone: formattedPhone, userId: response.user.id, email: formData.email },
-      });
+      // Navigate to appropriate verification screen based on user choice
+      if (formData.verificationMethod === 'phone') {
+        router.push({
+          pathname: '/auth/phone-verify',
+          params: { phone: formattedPhone, userId: response.user.id },
+        });
+      } else {
+        router.push({
+          pathname: '/auth/otp',
+          params: { email: formData.email, userId: response.user.id },
+        });
+      }
     } catch (error: any) {
       Alert.alert('Registration Failed', error.message || 'Please try again');
     } finally {
@@ -157,6 +240,47 @@ export default function RegisterScreen() {
 
   const renderStep1 = () => (
     <>
+      {/* Social Sign Up Buttons */}
+      <View style={styles.socialButtons}>
+        <TouchableOpacity
+          style={[styles.socialButton, googleLoading && styles.socialButtonDisabled]}
+          onPress={handleGoogleSignIn}
+          disabled={googleLoading || loading}
+        >
+          {googleLoading ? (
+            <ActivityIndicator size="small" color="#111827" />
+          ) : (
+            <>
+              <Ionicons name="logo-google" size={20} color="#111827" />
+              <Text style={styles.socialButtonText}>Google</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {appleAvailable && (
+          <TouchableOpacity
+            style={[styles.socialButton, appleLoading && styles.socialButtonDisabled]}
+            onPress={handleAppleSignIn}
+            disabled={appleLoading || loading}
+          >
+            {appleLoading ? (
+              <ActivityIndicator size="small" color="#111827" />
+            ) : (
+              <>
+                <Ionicons name="logo-apple" size={20} color="#111827" />
+                <Text style={styles.socialButtonText}>Apple</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={styles.dividerContainer}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>or register with email</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
       <Input
         label="First Name"
         placeholder="Enter your first name"
@@ -204,6 +328,54 @@ export default function RegisterScreen() {
         <Ionicons name="arrow-back" size={18} color="#4F46E5" />
         <Text style={styles.stepBackText}>Back to Personal Info</Text>
       </TouchableOpacity>
+
+      <View style={styles.verificationSection}>
+        <Text style={styles.verificationLabel}>Verify account via:</Text>
+        <View style={styles.verificationOptions}>
+          <TouchableOpacity
+            style={[
+              styles.verificationOption,
+              formData.verificationMethod === 'email' && styles.verificationOptionActive,
+            ]}
+            onPress={() => updateField('verificationMethod', 'email')}
+          >
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color={formData.verificationMethod === 'email' ? '#4F46E5' : '#6B7280'}
+            />
+            <Text
+              style={[
+                styles.verificationOptionText,
+                formData.verificationMethod === 'email' && styles.verificationOptionTextActive,
+              ]}
+            >
+              Email
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.verificationOption,
+              formData.verificationMethod === 'phone' && styles.verificationOptionActive,
+            ]}
+            onPress={() => updateField('verificationMethod', 'phone')}
+          >
+            <Ionicons
+              name="phone-portrait-outline"
+              size={20}
+              color={formData.verificationMethod === 'phone' ? '#4F46E5' : '#6B7280'}
+            />
+            <Text
+              style={[
+                styles.verificationOptionText,
+                formData.verificationMethod === 'phone' && styles.verificationOptionTextActive,
+              ]}
+            >
+              Phone
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <Input
         label="Password"
@@ -457,5 +629,81 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#4F46E5',
     fontWeight: '500',
+  },
+  verificationSection: {
+    marginBottom: 20,
+  },
+  verificationLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 10,
+  },
+  verificationOptions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  verificationOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+  },
+  verificationOptionActive: {
+    borderColor: '#4F46E5',
+    backgroundColor: '#EEF2FF',
+  },
+  verificationOptionText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  verificationOptionTextActive: {
+    color: '#4F46E5',
+  },
+  socialButtons: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 8,
+  },
+  socialButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: 8,
+  },
+  socialButtonDisabled: {
+    opacity: 0.7,
+  },
+  socialButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: '#6B7280',
   },
 });

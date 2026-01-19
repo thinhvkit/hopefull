@@ -1,5 +1,8 @@
 export { default as api } from './api';
 export * from './auth';
+export * from './biometric';
+export * from './social-auth';
+export * from './image-picker';
 export { therapistsService } from './therapists';
 export { appointmentsService } from './appointments';
 export { paymentsService } from './payments';

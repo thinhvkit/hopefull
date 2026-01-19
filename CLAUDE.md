@@ -71,7 +71,7 @@ The API follows NestJS module pattern:
 - `src/appointments/` - Booking, scheduling, cancellation
 - `src/payments/` - Payment methods, transactions, Stripe integration
 - `src/prisma/` - Global Prisma service for database access
-- `src/firebase/` - Firebase Admin SDK for phone verification
+- `src/firebase/` - Firebase Admin SDK for phone verification, Firestore for avatar storage
 
 Key patterns:
 - Global `PrismaModule` provides database access to all modules
@@ -86,11 +86,26 @@ Key patterns:
 |----------|--------|-------------|
 | `/api/v1/auth/register` | POST | Register new user, sends 6-digit OTP |
 | `/api/v1/auth/login` | POST | Login with email/password |
+| `/api/v1/auth/social` | POST | Social login (Google/Apple), auto-creates or links account |
 | `/api/v1/auth/verify-otp` | POST | Verify 6-digit OTP code |
 | `/api/v1/auth/resend-otp` | POST | Resend OTP to user |
 | `/api/v1/auth/verify-phone` | POST | Verify phone via Firebase ID token |
+| `/api/v1/auth/verify-email` | POST | Verify email via Firebase ID token |
+| `/api/v1/auth/forgot-password` | POST | Send password reset OTP to email |
+| `/api/v1/auth/reset-password` | POST | Reset password with OTP |
+| `/api/v1/auth/change-password` | POST | Change password (requires auth) |
 | `/api/v1/auth/refresh` | POST | Refresh access token |
 | `/api/v1/auth/me` | GET | Get current user profile |
+
+#### User Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/users/profile` | GET | Get current user profile |
+| `/api/v1/users/profile` | PATCH | Update profile (name, bio, timezone, etc.) |
+| `/api/v1/users/profile/avatar` | POST | Upload avatar image (base64, stored in Firestore) |
+| `/api/v1/users/profile/avatar` | DELETE | Remove avatar image |
+| `/api/v1/users/:id` | GET | Get user by ID |
 
 ### Mobile Structure (Expo Router)
 
@@ -98,13 +113,19 @@ File-based routing with Expo Router:
 - `app/_layout.tsx` - Root layout with providers
 - `app/index.tsx` - Welcome/landing screen
 - `app/onboarding.tsx` - Onboarding carousel
-- `app/auth/` - Login, register, OTP verification, forgot password flows
+- `app/auth/` - Login, register, OTP verification, forgot password, biometric setup flows
 - `app/(tabs)/` - Main app tabs (Home, Appointments, Therapists, Profile)
+- `app/profile/` - Profile editing, settings, security screens
 - `app/therapist/` - Therapist detail and booking screens
 
 State management:
-- `src/store/auth.ts` - Zustand store for auth state and onboarding
-- `src/services/api.ts` - Axios instance with token interceptors
+- `src/store/auth.ts` - Zustand store for auth state, biometric settings, and onboarding
+- `src/services/api.ts` - Axios instance with token interceptors and refresh logic
+- `src/services/auth.ts` - Authentication service (login, register, password management)
+- `src/services/social-auth.ts` - Google and Apple Sign-In via Firebase
+- `src/services/biometric.ts` - Biometric authentication (Face ID, Touch ID, Fingerprint)
+- `src/services/image-picker.ts` - Camera/gallery image picker with crop/resize
+- `src/services/users.ts` - User profile and avatar management
 - `src/config/firebase.ts` - Firebase client SDK configuration
 - Tokens stored in `expo-secure-store`
 - Onboarding flag stored in `AsyncStorage` (SecureStore unreliable on Android)
@@ -118,6 +139,51 @@ State management:
 6. Mobile calls `/auth/verify-phone` with ID token
 7. API verifies token, links phone to user, returns JWT tokens
 
+#### Social Authentication Flow (Google/Apple)
+1. User taps "Continue with Google" or "Continue with Apple" button
+2. Mobile triggers native SDK authentication flow
+3. On success, Firebase returns an ID token
+4. Mobile calls `POST /auth/social` with `{ idToken, provider: 'GOOGLE' | 'APPLE' }`
+5. API verifies token with Firebase Admin SDK
+6. If email exists, links social account to existing user
+7. If new email, creates new user with social account linked
+8. API returns JWT tokens (accessToken, refreshToken)
+
+Required packages:
+- `@react-native-google-signin/google-signin` - Google Sign-In SDK
+- `expo-apple-authentication` - Apple Sign-In (iOS only)
+- `@react-native-firebase/auth` - Firebase Auth for token management
+
+#### Biometric Authentication Flow
+1. After successful login, user is prompted to enable biometrics
+2. If enabled, credentials are securely stored in device keychain
+3. On next app launch, user can authenticate with Face ID/Touch ID/Fingerprint
+4. Biometric auth retrieves stored credentials and performs silent login
+5. Falls back to manual login if biometrics fail or are unavailable
+
+Key files:
+- `src/services/biometric.ts` - Biometric availability check, credential storage
+- `src/store/auth.ts` - `biometricEnabled` and `biometricEmail` state
+- `app/auth/biometric-setup.tsx` - Post-login biometric enrollment screen
+
+#### Password Management
+- **Forgot Password**: Sends OTP to email → verify OTP → set new password
+- **Change Password**: Requires current password → validates → updates password
+- **Security**: After password change, user is logged out and must re-login
+
+#### Profile Photo Upload
+1. User taps avatar on profile edit screen
+2. Image picker shows options: Camera or Photo Library
+3. Selected image is cropped (1:1 aspect), resized (400x400), compressed (quality 0.7)
+4. Image is converted to base64 and sent to `POST /users/profile/avatar`
+5. API stores image as data URL in Firebase Firestore (`avatars` collection)
+6. User's `avatarUrl` field is updated with the data URL
+7. Avatar displays directly from data URL (no separate CDN needed)
+
+Limitations:
+- Max avatar size: 500KB after compression (Firestore document limit)
+- Supported formats: JPG, PNG, HEIC (converted to JPEG)
+
 ### Admin Panel Structure
 
 React Router with protected routes:
@@ -130,6 +196,9 @@ React Router with protected routes:
 
 PostgreSQL with Prisma ORM. Key models in `apps/api/prisma/schema.prisma`:
 - **User** - All users (USER, THERAPIST, ADMIN roles)
+  - Social auth fields: `googleId`, `appleId` (for linking social accounts)
+  - Profile fields: `firstName`, `lastName`, `displayName`, `avatarUrl`, `bio`
+  - Verification: `emailVerified`, `phoneVerified`, `otpCode`, `otpExpiresAt`
 - **Therapist** - Extended profile linked to User, includes verification status
 - **Appointment** - Bookings with status workflow (PENDING → CONFIRMED → COMPLETED)
 - **Payment** - Stripe integration, tracks amounts in cents
@@ -162,15 +231,76 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY----
 EXPO_PUBLIC_FIREBASE_API_KEY=your-api-key
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 EXPO_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
 EXPO_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef
+
+# Feature Flags
+EXPO_PUBLIC_USE_FIREBASE_AUTH=false  # true = Firebase Phone Auth, false = API OTP
+
+# Google Sign-In (from Firebase Console → Authentication → Sign-in method → Google)
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-web-client-id.apps.googleusercontent.com
 ```
 
 ## Firebase Setup
 
+### Initial Setup
 1. Create a Firebase project at https://console.firebase.google.com
-2. Enable **Phone Authentication** in Authentication → Sign-in method
-3. Add test phone numbers for development (optional)
-4. Download service account JSON for API (Project Settings → Service accounts)
-5. Get web config for mobile (Project Settings → General → Your apps)
+2. Download service account JSON for API (Project Settings → Service accounts)
+3. Get web config for mobile (Project Settings → General → Your apps → Add app → Web)
+
+### Enable Authentication Methods
+1. Go to Authentication → Sign-in method
+2. Enable **Phone** authentication (for OTP verification)
+3. Enable **Google** authentication:
+   - Copy the Web client ID for `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`
+4. Enable **Apple** authentication (for iOS):
+   - Requires Apple Developer account and Sign in with Apple capability
+5. Add test phone numbers for development (optional)
+
+### Enable Firestore (for Avatar Storage)
+1. Go to Build → Firestore Database
+2. Click "Create database"
+3. Choose "Start in test mode" for development:
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /avatars/{userId} {
+         allow read: if true;
+         allow write: if request.auth != null && request.auth.uid == userId;
+       }
+     }
+   }
+   ```
+4. Select your Cloud Firestore location
+5. Click "Done"
+
+### Mobile App Configuration (Android)
+1. Add Android app in Firebase Console (Project Settings → General → Your apps)
+2. Download `google-services.json` to `apps/mobile/android/app/`
+3. Add SHA-1 fingerprint for Google Sign-In:
+   ```bash
+   cd apps/mobile/android && ./gradlew signingReport
+   ```
+
+### Mobile App Configuration (iOS)
+1. Add iOS app in Firebase Console
+2. Download `GoogleService-Info.plist` to `apps/mobile/ios/`
+3. Enable "Sign in with Apple" capability in Xcode
+4. Add URL scheme for Google Sign-In (reversed client ID)
+
+## Key Mobile Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `@react-native-firebase/app` | Firebase core SDK |
+| `@react-native-firebase/auth` | Firebase Authentication |
+| `@react-native-google-signin/google-signin` | Google Sign-In native SDK |
+| `expo-apple-authentication` | Apple Sign-In (iOS) |
+| `expo-local-authentication` | Biometric authentication |
+| `expo-secure-store` | Secure credential storage |
+| `expo-image-picker` | Camera and photo library access |
+| `expo-image-manipulator` | Image resize and compression |
+| `zustand` | State management |
+| `axios` | HTTP client with interceptors |

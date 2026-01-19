@@ -10,20 +10,29 @@ export interface UpdateProfileData {
   preferredLanguage?: string;
 }
 
+export interface UploadAvatarData {
+  base64: string;
+  mimeType: string;
+}
+
 export const usersService = {
   async getProfile(): Promise<User> {
-    const { data } = await api.get('/users/me');
+    const { data } = await api.get('/users/profile');
     return data;
   },
 
   async updateProfile(profileData: UpdateProfileData): Promise<User> {
-    const { data } = await api.patch('/users/me', profileData);
+    const { data } = await api.patch('/users/profile', profileData);
     return data;
   },
 
-  async updateAvatar(avatarUrl: string): Promise<User> {
-    const { data } = await api.patch('/users/me/avatar', { avatarUrl });
+  async uploadAvatar(avatarData: UploadAvatarData): Promise<{ avatarUrl: string }> {
+    const { data } = await api.post('/users/profile/avatar', avatarData);
     return data;
+  },
+
+  async removeAvatar(): Promise<void> {
+    await api.delete('/users/profile/avatar');
   },
 
   async getUserById(id: string): Promise<User> {
