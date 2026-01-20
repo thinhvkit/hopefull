@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/store/auth';
 import { authService } from '../../src/services/auth';
 import {
@@ -30,6 +31,7 @@ import * as SecureStore from 'expo-secure-store';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { setUser, setTokens, biometricEnabled, hasOfferedBiometric, setHasOfferedBiometric } = useAuthStore();
 
   const [email, setEmail] = useState('');
@@ -60,7 +62,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.register.errors.fillAllFields'));
       return;
     }
 
@@ -91,7 +93,7 @@ export default function LoginScreen() {
         router.replace('/(tabs)');
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Login failed');
+      Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -116,13 +118,13 @@ export default function LoginScreen() {
       const response = await authService.login(credentials.email, credentials.password);
 
       if (response.requiresVerification) {
-        Alert.alert('Verification Required', 'Please login with your password');
+        Alert.alert(t('auth.login.verificationRequired'), t('auth.login.pleaseLoginWithPassword'));
         setBiometricLoading(false);
         return;
       }
 
       if (!response.accessToken || !response.refreshToken) {
-        Alert.alert('Login Failed', 'Please login with your password');
+        Alert.alert(t('auth.login.loginFailed'), t('auth.login.pleaseLoginWithPassword'));
         setBiometricLoading(false);
         return;
       }
@@ -131,7 +133,7 @@ export default function LoginScreen() {
       setUser(response.user);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Login Failed', 'Please login with your password');
+      Alert.alert(t('auth.login.loginFailed'), t('auth.login.pleaseLoginWithPassword'));
     } finally {
       setBiometricLoading(false);
     }
@@ -156,7 +158,7 @@ export default function LoginScreen() {
       }
 
       if (!result.success) {
-        Alert.alert('Error', result.error || 'Google Sign-In failed');
+        Alert.alert(t('common.error'), result.error || t('auth.login.loginFailed'));
         setGoogleLoading(false);
         return;
       }
@@ -165,7 +167,7 @@ export default function LoginScreen() {
       setUser(result.user);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Google Sign-In failed');
+      Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
     } finally {
       setGoogleLoading(false);
     }
@@ -182,7 +184,7 @@ export default function LoginScreen() {
       }
 
       if (!result.success) {
-        Alert.alert('Error', result.error || 'Apple Sign-In failed');
+        Alert.alert(t('common.error'), result.error || t('auth.login.loginFailed'));
         setAppleLoading(false);
         return;
       }
@@ -191,7 +193,7 @@ export default function LoginScreen() {
       setUser(result.user);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Apple Sign-In failed');
+      Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
     } finally {
       setAppleLoading(false);
     }
@@ -206,16 +208,16 @@ export default function LoginScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue your journey</Text>
+        <Text style={styles.title}>{t('auth.login.title')}</Text>
+        <Text style={styles.subtitle}>{t('auth.login.subtitle')}</Text>
       </View>
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>{t('auth.login.email')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your email"
+            placeholder={t('auth.login.emailPlaceholder')}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -225,11 +227,11 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>{t('auth.login.password')}</Text>
           <View style={styles.passwordContainer}>
             <TextInput
               style={[styles.input, styles.passwordInput]}
-              placeholder="Enter your password"
+              placeholder={t('auth.login.passwordPlaceholder')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -250,7 +252,7 @@ export default function LoginScreen() {
 
         <Link href="/auth/forgot-password" asChild>
           <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            <Text style={styles.forgotPasswordText}>{t('auth.login.forgotPassword')}</Text>
           </TouchableOpacity>
         </Link>
 
@@ -262,7 +264,7 @@ export default function LoginScreen() {
           {isLoading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Sign In</Text>
+            <Text style={styles.buttonText}>{t('auth.login.signIn')}</Text>
           )}
         </TouchableOpacity>
 
@@ -271,7 +273,7 @@ export default function LoginScreen() {
           <>
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
+              <Text style={styles.dividerText}>{t('common.or')}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -286,7 +288,7 @@ export default function LoginScreen() {
                 <>
                   <Ionicons name={getBiometricIcon()} size={24} color="#4F46E5" />
                   <Text style={styles.biometricButtonText}>
-                    Login with {biometricStatus.biometricName}
+                    {t('auth.login.loginWith', { method: biometricStatus.biometricName })}
                   </Text>
                 </>
               )}
@@ -297,7 +299,7 @@ export default function LoginScreen() {
         {/* Social Login Buttons */}
         <View style={styles.dividerContainer}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or continue with</Text>
+          <Text style={styles.dividerText}>{t('common.continueWith')}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -312,7 +314,7 @@ export default function LoginScreen() {
             ) : (
               <>
                 <Ionicons name="logo-google" size={20} color="#111827" />
-                <Text style={styles.socialButtonText}>Google</Text>
+                <Text style={styles.socialButtonText}>{t('auth.login.google')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -328,7 +330,7 @@ export default function LoginScreen() {
               ) : (
                 <>
                   <Ionicons name="logo-apple" size={20} color="#111827" />
-                  <Text style={styles.socialButtonText}>Apple</Text>
+                  <Text style={styles.socialButtonText}>{t('auth.login.apple')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -337,10 +339,10 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Don't have an account? </Text>
+        <Text style={styles.footerText}>{t('auth.login.noAccount')} </Text>
         <Link href="/auth/register" asChild>
           <TouchableOpacity>
-            <Text style={styles.footerLink}>Sign Up</Text>
+            <Text style={styles.footerLink}>{t('auth.login.signUp')}</Text>
           </TouchableOpacity>
         </Link>
       </View>

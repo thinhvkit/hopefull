@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/store/auth';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 
@@ -8,6 +9,7 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 let isRedirectingToWelcome = false;
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   const { user, isAuthenticated, isLoading } = useAuthStore();
   const isTherapist = user?.role === 'THERAPIST';
   const navigation = useNavigation();
@@ -72,9 +74,9 @@ export default function TabsLayout() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         title: route.name === 'index' ? 'Home' :
-               route.name === 'appointments' ? 'Appointments' :
-               route.name === 'therapists' ? 'Therapists' :
-               route.name === 'profile' ? 'Profile' : route.name,
+               route.name === 'appointments' ? t('appointments.title') :
+               route.name === 'therapists' ? t('therapists.title') :
+               route.name === 'profile' ? t('profile.title') : route.name,
         href: route.name === 'therapists' && isTherapist ? null : undefined,
       })}
     />

@@ -10,32 +10,30 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/auth';
 
 const { width } = Dimensions.get('window');
 
-const slides = [
+const slideConfig = [
   {
     id: '1',
-    title: 'Find Your Therapist',
-    description:
-      'Connect with licensed therapists who specialize in your needs. Browse profiles, read reviews, and find the perfect match.',
+    titleKey: 'onboarding.findTherapist.title',
+    descriptionKey: 'onboarding.findTherapist.description',
     icon: 'search-outline',
     color: '#4F46E5',
   },
   {
     id: '2',
-    title: 'Book with Ease',
-    description:
-      'Schedule appointments at your convenience. Choose from available time slots and book sessions in just a few taps.',
+    titleKey: 'onboarding.bookWithEase.title',
+    descriptionKey: 'onboarding.bookWithEase.description',
     icon: 'calendar-outline',
     color: '#10B981',
   },
   {
     id: '3',
-    title: 'Secure Video Sessions',
-    description:
-      'Have private, HIPAA-compliant video sessions from the comfort of your home. Your privacy and security are our priority.',
+    titleKey: 'onboarding.secureVideo.title',
+    descriptionKey: 'onboarding.secureVideo.description',
     icon: 'videocam-outline',
     color: '#F59E0B',
   },
@@ -45,6 +43,7 @@ export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const { completeOnboarding } = useAuthStore();
+  const { t } = useTranslation();
 
   const handleSkip = async () => {
     await completeOnboarding();
@@ -52,7 +51,7 @@ export default function OnboardingScreen() {
   };
 
   const handleNext = async () => {
-    if (currentIndex < slides.length - 1) {
+    if (currentIndex < slideConfig.length - 1) {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
     } else {
       await completeOnboarding();
@@ -60,19 +59,19 @@ export default function OnboardingScreen() {
     }
   };
 
-  const renderSlide = ({ item }: { item: (typeof slides)[0] }) => (
+  const renderSlide = ({ item }: { item: (typeof slideConfig)[0] }) => (
     <View style={styles.slide}>
       <View style={[styles.iconContainer, { backgroundColor: `${item.color}15` }]}>
         <Ionicons name={item.icon as any} size={80} color={item.color} />
       </View>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.description}>{item.description}</Text>
+      <Text style={styles.title}>{t(item.titleKey)}</Text>
+      <Text style={styles.description}>{t(item.descriptionKey)}</Text>
     </View>
   );
 
   const renderDots = () => (
     <View style={styles.dotsContainer}>
-      {slides.map((_, index) => (
+      {slideConfig.map((_, index) => (
         <View
           key={index}
           style={[
@@ -88,13 +87,13 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-          <Text style={styles.skipText}>Skip</Text>
+          <Text style={styles.skipText}>{t('common.skip')}</Text>
         </TouchableOpacity>
       </View>
 
       <FlatList
         ref={flatListRef}
-        data={slides}
+        data={slideConfig}
         renderItem={renderSlide}
         horizontal
         pagingEnabled
@@ -111,7 +110,7 @@ export default function OnboardingScreen() {
       <View style={styles.footer}>
         <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
           <Text style={styles.nextButtonText}>
-            {currentIndex === slides.length - 1 ? 'Get Started' : 'Next'}
+            {currentIndex === slideConfig.length - 1 ? t('onboarding.getStarted') : t('common.next')}
           </Text>
           <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
         </TouchableOpacity>

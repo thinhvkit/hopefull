@@ -1,15 +1,17 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../src/store/auth';
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const { isLoading } = useAuthStore();
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <Text style={styles.logo}>Hopefull</Text>
+        <Text style={styles.logo}>{t('common.appName')}</Text>
       </View>
     );
   }
@@ -17,15 +19,13 @@ export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.logo}>Hopefull</Text>
-        <Text style={styles.tagline}>Your mental wellness journey starts here</Text>
+        <Text style={styles.logo}>{t('common.appName')}</Text>
+        <Text style={styles.tagline}>{t('welcome.tagline')}</Text>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Connect with licensed therapists</Text>
-        <Text style={styles.subtitle}>
-          Book sessions, video calls, and get the support you need — anytime, anywhere.
-        </Text>
+        <Text style={styles.title}>{t('welcome.title')}</Text>
+        <Text style={styles.subtitle}>{t('welcome.subtitle')}</Text>
       </View>
 
       <View style={styles.buttons}>
@@ -33,7 +33,7 @@ export default function WelcomeScreen() {
           style={[styles.button, styles.userButton]}
           onPress={() => router.push('/auth/register?role=USER')}
         >
-          <Text style={styles.buttonText}>I'm looking for a therapist</Text>
+          <Text style={styles.buttonText}>{t('welcome.lookingForTherapist')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -41,15 +41,15 @@ export default function WelcomeScreen() {
           onPress={() => router.push('/auth/register?role=THERAPIST')}
         >
           <Text style={[styles.buttonText, styles.therapistButtonText]}>
-            I'm a therapist
+            {t('welcome.iAmTherapist')}
           </Text>
         </TouchableOpacity>
 
         <View style={styles.loginContainer}>
-          <Text style={styles.loginText}>Already have an account? </Text>
+          <Text style={styles.loginText}>{t('welcome.alreadyHaveAccount')} </Text>
           <Link href="/auth/login" asChild>
             <TouchableOpacity>
-              <Text style={styles.loginLink}>Sign In</Text>
+              <Text style={styles.loginLink}>{t('welcome.signIn')}</Text>
             </TouchableOpacity>
           </Link>
         </View>

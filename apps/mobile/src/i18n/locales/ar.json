@@ -1,0 +1,370 @@
+{
+  "common": {
+    "appName": "Hopefull",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "done": "تم",
+    "next": "التالي",
+    "back": "رجوع",
+    "skip": "تخطي",
+    "ok": "حسناً",
+    "yes": "نعم",
+    "no": "لا",
+    "or": "أو",
+    "and": "و",
+    "search": "بحث",
+    "filter": "تصفية",
+    "sort": "ترتيب",
+    "all": "الكل",
+    "none": "لا شيء",
+    "online": "متصل",
+    "offline": "غير متصل",
+    "tryAgain": "حاول مرة أخرى",
+    "continueWith": "أو تابع مع"
+  },
+  "welcome": {
+    "tagline": "رحلتك نحو الصحة النفسية تبدأ هنا",
+    "title": "تواصل مع معالجين نفسيين معتمدين",
+    "subtitle": "احجز جلسات ومكالمات فيديو واحصل على الدعم الذي تحتاجه — في أي وقت وأي مكان.",
+    "lookingForTherapist": "أبحث عن معالج نفسي",
+    "iAmTherapist": "أنا معالج نفسي",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "signIn": "تسجيل الدخول"
+  },
+  "onboarding": {
+    "findTherapist": {
+      "title": "اعثر على معالجك",
+      "description": "تواصل مع معالجين نفسيين معتمدين متخصصين في احتياجاتك. تصفح الملفات الشخصية واقرأ التقييمات وجد التطابق المثالي."
+    },
+    "bookWithEase": {
+      "title": "احجز بسهولة",
+      "description": "جدول المواعيد حسب راحتك. اختر من الأوقات المتاحة واحجز الجلسات ببضع نقرات."
+    },
+    "secureVideo": {
+      "title": "جلسات فيديو آمنة",
+      "description": "احصل على جلسات فيديو خاصة ومتوافقة مع معايير HIPAA من راحة منزلك. خصوصيتك وأمانك هما أولويتنا."
+    },
+    "getStarted": "ابدأ الآن"
+  },
+  "auth": {
+    "login": {
+      "title": "مرحباً بعودتك",
+      "subtitle": "سجل دخولك لمتابعة رحلتك",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "أدخل بريدك الإلكتروني",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "signIn": "تسجيل الدخول",
+      "loginWith": "تسجيل الدخول عبر {{method}}",
+      "noAccount": "ليس لديك حساب؟",
+      "signUp": "إنشاء حساب",
+      "google": "جوجل",
+      "apple": "أبل",
+      "verificationRequired": "التحقق مطلوب",
+      "pleaseLoginWithPassword": "يرجى تسجيل الدخول بكلمة المرور",
+      "loginFailed": "فشل تسجيل الدخول"
+    },
+    "register": {
+      "title": "إنشاء حساب",
+      "subtitle": "انضم إلى Hopefull وابدأ رحلتك",
+      "step1Title": "المعلومات الشخصية",
+      "step2Title": "إنشاء كلمة المرور",
+      "firstName": "الاسم الأول",
+      "firstNamePlaceholder": "أدخل اسمك الأول",
+      "lastName": "اسم العائلة",
+      "lastNamePlaceholder": "أدخل اسم عائلتك",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "أدخل بريدك الإلكتروني",
+      "phone": "رقم الهاتف",
+      "phonePlaceholder": "أدخل رقم هاتفك",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أنشئ كلمة مرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "confirmPasswordPlaceholder": "أكد كلمة المرور",
+      "createAccount": "إنشاء حساب",
+      "alreadyHaveAccount": "لديك حساب بالفعل؟",
+      "passwordRequirements": {
+        "title": "كلمة المرور يجب أن تحتوي على:",
+        "length": "12 حرفاً على الأقل",
+        "uppercase": "حرف كبير واحد",
+        "lowercase": "حرف صغير واحد",
+        "number": "رقم واحد",
+        "special": "رمز خاص واحد"
+      },
+      "errors": {
+        "fillAllFields": "يرجى ملء جميع الحقول",
+        "invalidEmail": "يرجى إدخال بريد إلكتروني صحيح",
+        "invalidPhone": "يرجى إدخال رقم هاتف صحيح",
+        "passwordMismatch": "كلمات المرور غير متطابقة",
+        "passwordRequirements": "كلمة المرور لا تستوفي المتطلبات"
+      }
+    },
+    "otp": {
+      "title": "تحقق من هاتفك",
+      "subtitle": "أدخل الرمز المكون من 6 أرقام المرسل إلى",
+      "resendCode": "إعادة إرسال الرمز",
+      "resendIn": "إعادة الإرسال بعد {{seconds}} ثانية",
+      "verify": "تحقق",
+      "invalidCode": "رمز التحقق غير صحيح",
+      "codeSent": "تم إرسال رمز التحقق"
+    },
+    "phoneVerify": {
+      "title": "تحقق من رقم الهاتف",
+      "subtitle": "سنرسل رمز التحقق إلى",
+      "sendCode": "إرسال رمز التحقق",
+      "verifying": "جاري التحقق..."
+    },
+    "forgotPassword": {
+      "title": "نسيت كلمة المرور",
+      "subtitle": "أدخل بريدك الإلكتروني وسنرسل لك رمزاً لإعادة تعيين كلمة المرور",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "أدخل بريدك الإلكتروني",
+      "sendCode": "إرسال رمز إعادة التعيين",
+      "backToLogin": "العودة لتسجيل الدخول",
+      "resetTitle": "إعادة تعيين كلمة المرور",
+      "resetSubtitle": "أدخل الرمز المرسل إلى بريدك وأنشئ كلمة مرور جديدة",
+      "code": "رمز التحقق",
+      "codePlaceholder": "أدخل الرمز المكون من 6 أرقام",
+      "newPassword": "كلمة المرور الجديدة",
+      "newPasswordPlaceholder": "أدخل كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "confirmPasswordPlaceholder": "أكد كلمة المرور الجديدة",
+      "resetPassword": "إعادة تعيين كلمة المرور",
+      "success": "تم إعادة تعيين كلمة المرور بنجاح! يرجى تسجيل الدخول بكلمة المرور الجديدة."
+    },
+    "biometric": {
+      "title": "تفعيل الدخول البيومتري",
+      "subtitle": "استخدم {{method}} لتسجيل الدخول بسرعة وأمان",
+      "faceId": "Face ID",
+      "touchId": "Touch ID",
+      "fingerprint": "البصمة",
+      "biometric": "القياسات الحيوية",
+      "enable": "تفعيل {{method}}",
+      "notNow": "ليس الآن",
+      "success": "تم تفعيل الدخول البيومتري بنجاح",
+      "error": "فشل تفعيل الدخول البيومتري"
+    },
+    "errors": {
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+      "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك.",
+      "serverError": "خطأ في الخادم. يرجى المحاولة لاحقاً.",
+      "sessionExpired": "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى."
+    }
+  },
+  "home": {
+    "greeting": "مرحباً، {{name}}!",
+    "greetingDefault": "مرحباً!",
+    "welcomeBack": "مرحباً بعودتك",
+    "upcomingAppointments": "المواعيد القادمة",
+    "noUpcoming": "لا توجد مواعيد قادمة",
+    "bookNow": "احجز الآن",
+    "findTherapist": "ابحث عن معالج",
+    "viewAll": "عرض الكل",
+    "quickActions": "إجراءات سريعة",
+    "myAppointments": "مواعيدي",
+    "browseTherapists": "تصفح المعالجين",
+    "myProfile": "ملفي الشخصي"
+  },
+  "therapists": {
+    "title": "المعالجون",
+    "searchPlaceholder": "ابحث عن معالجين...",
+    "filters": {
+      "title": "الفلاتر",
+      "specialization": "التخصص",
+      "language": "اللغة",
+      "priceRange": "نطاق السعر",
+      "availability": "التوفر",
+      "rating": "التقييم",
+      "apply": "تطبيق الفلاتر",
+      "clear": "مسح الكل"
+    },
+    "specializations": {
+      "anxiety": "القلق",
+      "depression": "الاكتئاب",
+      "relationships": "العلاقات",
+      "trauma": "الصدمات",
+      "stress": "الإجهاد",
+      "addiction": "الإدمان",
+      "grief": "الحزن",
+      "selfEsteem": "تقدير الذات",
+      "anger": "إدارة الغضب",
+      "familyTherapy": "العلاج الأسري",
+      "couplesTherapy": "علاج الأزواج",
+      "childTherapy": "علاج الأطفال"
+    },
+    "card": {
+      "perSession": "/جلسة",
+      "yearsExp": "{{years}} سنوات خبرة",
+      "reviews": "{{count}} تقييم",
+      "viewProfile": "عرض الملف",
+      "bookSession": "حجز جلسة"
+    },
+    "detail": {
+      "about": "نبذة",
+      "specializations": "التخصصات",
+      "languages": "اللغات",
+      "education": "التعليم",
+      "experience": "الخبرة",
+      "reviews": "التقييمات",
+      "availability": "التوفر",
+      "bookAppointment": "حجز موعد"
+    },
+    "noResults": "لم يتم العثور على معالجين",
+    "tryDifferentFilters": "جرب تعديل الفلاتر"
+  },
+  "appointments": {
+    "title": "المواعيد",
+    "tabs": {
+      "upcoming": "القادمة",
+      "past": "السابقة",
+      "cancelled": "الملغاة"
+    },
+    "status": {
+      "pending": "قيد الانتظار",
+      "confirmed": "مؤكد",
+      "completed": "مكتمل",
+      "cancelled": "ملغي",
+      "noShow": "لم يحضر"
+    },
+    "card": {
+      "with": "مع",
+      "joinCall": "انضم للمكالمة",
+      "reschedule": "إعادة الجدولة",
+      "cancel": "إلغاء"
+    },
+    "booking": {
+      "title": "حجز موعد",
+      "selectDate": "اختر التاريخ",
+      "selectTime": "اختر الوقت",
+      "sessionType": "نوع الجلسة",
+      "video": "مكالمة فيديو",
+      "inPerson": "حضوري",
+      "notes": "ملاحظات (اختياري)",
+      "notesPlaceholder": "أي مواضيع أو مخاوف محددة تود مناقشتها...",
+      "confirmBooking": "تأكيد الحجز",
+      "bookingConfirmed": "تم حجز الموعد بنجاح!"
+    },
+    "cancel": {
+      "title": "إلغاء الموعد",
+      "message": "هل أنت متأكد من رغبتك في إلغاء هذا الموعد؟",
+      "reason": "سبب الإلغاء",
+      "reasonPlaceholder": "يرجى تقديم سبب...",
+      "confirm": "نعم، إلغاء",
+      "cancelled": "تم إلغاء الموعد"
+    },
+    "empty": {
+      "upcoming": "لا توجد مواعيد قادمة",
+      "past": "لا توجد مواعيد سابقة",
+      "cancelled": "لا توجد مواعيد ملغاة",
+      "bookFirst": "احجز جلستك الأولى مع معالج"
+    }
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "editProfile": "تعديل الملف",
+    "settings": "الإعدادات",
+    "edit": {
+      "title": "تعديل الملف الشخصي",
+      "firstName": "الاسم الأول",
+      "lastName": "اسم العائلة",
+      "displayName": "الاسم المعروض",
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الهاتف",
+      "bio": "نبذة",
+      "bioPlaceholder": "أخبرنا عن نفسك...",
+      "timezone": "المنطقة الزمنية",
+      "saveChanges": "حفظ التغييرات",
+      "changePhoto": "تغيير الصورة",
+      "takePhoto": "التقاط صورة",
+      "chooseFromLibrary": "اختر من المعرض",
+      "removePhoto": "إزالة الصورة",
+      "photoUpdated": "تم تحديث صورة الملف الشخصي",
+      "photoRemoved": "تم إزالة صورة الملف الشخصي",
+      "profileUpdated": "تم تحديث الملف الشخصي بنجاح"
+    },
+    "menu": {
+      "personalInfo": "المعلومات الشخصية",
+      "security": "كلمة المرور والأمان",
+      "notifications": "الإشعارات",
+      "language": "اللغة",
+      "help": "المساعدة والدعم",
+      "about": "حول",
+      "logout": "تسجيل الخروج"
+    },
+    "security": {
+      "title": "كلمة المرور والأمان",
+      "changePassword": "تغيير كلمة المرور",
+      "currentPassword": "كلمة المرور الحالية",
+      "currentPasswordPlaceholder": "أدخل كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "newPasswordPlaceholder": "أدخل كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور الجديدة",
+      "confirmPasswordPlaceholder": "أكد كلمة المرور الجديدة",
+      "updatePassword": "تحديث كلمة المرور",
+      "passwordChanged": "تم تغيير كلمة المرور بنجاح. يرجى تسجيل الدخول مرة أخرى.",
+      "biometricLogin": "الدخول البيومتري",
+      "biometricDescription": "استخدم {{method}} لتسجيل الدخول",
+      "twoFactor": "المصادقة الثنائية",
+      "twoFactorDescription": "أضف طبقة أمان إضافية",
+      "activeSessions": "الجلسات النشطة",
+      "errors": {
+        "incorrectPassword": "كلمة المرور الحالية غير صحيحة",
+        "passwordMismatch": "كلمات المرور الجديدة غير متطابقة",
+        "samePassword": "كلمة المرور الجديدة يجب أن تكون مختلفة عن الحالية"
+      }
+    },
+    "language": {
+      "title": "اللغة",
+      "subtitle": "اختر لغتك المفضلة",
+      "current": "الحالية: {{language}}",
+      "english": "الإنجليزية",
+      "spanish": "الإسبانية",
+      "vietnamese": "الفيتنامية",
+      "arabic": "العربية",
+      "changed": "تم تغيير اللغة إلى {{language}}"
+    },
+    "logout": {
+      "title": "تسجيل الخروج",
+      "message": "هل أنت متأكد من رغبتك في تسجيل الخروج؟",
+      "confirm": "تسجيل الخروج"
+    }
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "email": "يرجى إدخال بريد إلكتروني صحيح",
+    "phone": "يرجى إدخال رقم هاتف صحيح",
+    "minLength": "يجب أن يكون {{min}} أحرف على الأقل",
+    "maxLength": "يجب ألا يتجاوز {{max}} حرفاً",
+    "passwordMatch": "كلمات المرور يجب أن تتطابق"
+  },
+  "errors": {
+    "general": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "network": "خطأ في الشبكة. يرجى التحقق من اتصالك.",
+    "server": "خطأ في الخادم. يرجى المحاولة لاحقاً.",
+    "notFound": "غير موجود",
+    "unauthorized": "يرجى تسجيل الدخول للمتابعة",
+    "forbidden": "ليس لديك إذن للقيام بذلك"
+  },
+  "dates": {
+    "today": "اليوم",
+    "tomorrow": "غداً",
+    "yesterday": "أمس",
+    "thisWeek": "هذا الأسبوع",
+    "nextWeek": "الأسبوع القادم",
+    "thisMonth": "هذا الشهر"
+  },
+  "time": {
+    "am": "ص",
+    "pm": "م",
+    "hours": "ساعات",
+    "minutes": "دقائق",
+    "seconds": "ثواني"
+  }
+}

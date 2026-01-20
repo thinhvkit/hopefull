@@ -1,0 +1,370 @@
+{
+  "common": {
+    "appName": "Hopefull",
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "done": "Xong",
+    "next": "Tiếp",
+    "back": "Quay lại",
+    "skip": "Bỏ qua",
+    "ok": "OK",
+    "yes": "Có",
+    "no": "Không",
+    "or": "hoặc",
+    "and": "và",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "all": "Tất cả",
+    "none": "Không có",
+    "online": "Trực tuyến",
+    "offline": "Ngoại tuyến",
+    "tryAgain": "Thử lại",
+    "continueWith": "hoặc tiếp tục với"
+  },
+  "welcome": {
+    "tagline": "Hành trình chăm sóc sức khỏe tinh thần của bạn bắt đầu từ đây",
+    "title": "Kết nối với các chuyên gia tâm lý được cấp phép",
+    "subtitle": "Đặt lịch hẹn, gọi video và nhận sự hỗ trợ bạn cần — mọi lúc, mọi nơi.",
+    "lookingForTherapist": "Tôi đang tìm chuyên gia tâm lý",
+    "iAmTherapist": "Tôi là chuyên gia tâm lý",
+    "alreadyHaveAccount": "Đã có tài khoản?",
+    "signIn": "Đăng Nhập"
+  },
+  "onboarding": {
+    "findTherapist": {
+      "title": "Tìm Chuyên Gia Của Bạn",
+      "description": "Kết nối với các chuyên gia tâm lý được cấp phép chuyên về nhu cầu của bạn. Xem hồ sơ, đọc đánh giá và tìm người phù hợp nhất."
+    },
+    "bookWithEase": {
+      "title": "Đặt Lịch Dễ Dàng",
+      "description": "Lên lịch hẹn theo sự thuận tiện của bạn. Chọn từ các khung giờ có sẵn và đặt buổi hẹn chỉ với vài thao tác."
+    },
+    "secureVideo": {
+      "title": "Phiên Video An Toàn",
+      "description": "Có các buổi video riêng tư, tuân thủ HIPAA từ sự thoải mái của ngôi nhà bạn. Quyền riêng tư và bảo mật của bạn là ưu tiên của chúng tôi."
+    },
+    "getStarted": "Bắt Đầu"
+  },
+  "auth": {
+    "login": {
+      "title": "Chào Mừng Trở Lại",
+      "subtitle": "Đăng nhập để tiếp tục hành trình của bạn",
+      "email": "Email",
+      "emailPlaceholder": "Nhập email của bạn",
+      "password": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu của bạn",
+      "forgotPassword": "Quên Mật Khẩu?",
+      "signIn": "Đăng Nhập",
+      "loginWith": "Đăng nhập với {{method}}",
+      "noAccount": "Chưa có tài khoản?",
+      "signUp": "Đăng Ký",
+      "google": "Google",
+      "apple": "Apple",
+      "verificationRequired": "Cần Xác Minh",
+      "pleaseLoginWithPassword": "Vui lòng đăng nhập bằng mật khẩu",
+      "loginFailed": "Đăng Nhập Thất Bại"
+    },
+    "register": {
+      "title": "Tạo Tài Khoản",
+      "subtitle": "Tham gia Hopefull và bắt đầu hành trình của bạn",
+      "step1Title": "Thông Tin Cá Nhân",
+      "step2Title": "Tạo Mật Khẩu",
+      "firstName": "Tên",
+      "firstNamePlaceholder": "Nhập tên của bạn",
+      "lastName": "Họ",
+      "lastNamePlaceholder": "Nhập họ của bạn",
+      "email": "Email",
+      "emailPlaceholder": "Nhập email của bạn",
+      "phone": "Số Điện Thoại",
+      "phonePlaceholder": "Nhập số điện thoại của bạn",
+      "password": "Mật Khẩu",
+      "passwordPlaceholder": "Tạo mật khẩu",
+      "confirmPassword": "Xác Nhận Mật Khẩu",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu của bạn",
+      "createAccount": "Tạo Tài Khoản",
+      "alreadyHaveAccount": "Đã có tài khoản?",
+      "passwordRequirements": {
+        "title": "Mật khẩu phải có:",
+        "length": "Ít nhất 12 ký tự",
+        "uppercase": "Một chữ hoa",
+        "lowercase": "Một chữ thường",
+        "number": "Một số",
+        "special": "Một ký tự đặc biệt"
+      },
+      "errors": {
+        "fillAllFields": "Vui lòng điền đầy đủ các trường",
+        "invalidEmail": "Vui lòng nhập email hợp lệ",
+        "invalidPhone": "Vui lòng nhập số điện thoại hợp lệ",
+        "passwordMismatch": "Mật khẩu không khớp",
+        "passwordRequirements": "Mật khẩu không đáp ứng yêu cầu"
+      }
+    },
+    "otp": {
+      "title": "Xác Minh Điện Thoại",
+      "subtitle": "Nhập mã 6 chữ số đã gửi đến",
+      "resendCode": "Gửi Lại Mã",
+      "resendIn": "Gửi lại sau {{seconds}}s",
+      "verify": "Xác Minh",
+      "invalidCode": "Mã xác minh không hợp lệ",
+      "codeSent": "Đã gửi mã xác minh"
+    },
+    "phoneVerify": {
+      "title": "Xác Minh Số Điện Thoại",
+      "subtitle": "Chúng tôi sẽ gửi mã xác minh đến",
+      "sendCode": "Gửi Mã Xác Minh",
+      "verifying": "Đang xác minh..."
+    },
+    "forgotPassword": {
+      "title": "Quên Mật Khẩu",
+      "subtitle": "Nhập email của bạn và chúng tôi sẽ gửi mã để đặt lại mật khẩu",
+      "email": "Email",
+      "emailPlaceholder": "Nhập email của bạn",
+      "sendCode": "Gửi Mã Đặt Lại",
+      "backToLogin": "Quay Lại Đăng Nhập",
+      "resetTitle": "Đặt Lại Mật Khẩu",
+      "resetSubtitle": "Nhập mã đã gửi đến email và tạo mật khẩu mới",
+      "code": "Mã Xác Minh",
+      "codePlaceholder": "Nhập mã 6 chữ số",
+      "newPassword": "Mật Khẩu Mới",
+      "newPasswordPlaceholder": "Nhập mật khẩu mới",
+      "confirmPassword": "Xác Nhận Mật Khẩu",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu mới",
+      "resetPassword": "Đặt Lại Mật Khẩu",
+      "success": "Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới."
+    },
+    "biometric": {
+      "title": "Bật Đăng Nhập Sinh Trắc",
+      "subtitle": "Sử dụng {{method}} để đăng nhập nhanh chóng và an toàn",
+      "faceId": "Face ID",
+      "touchId": "Touch ID",
+      "fingerprint": "Vân Tay",
+      "biometric": "Sinh Trắc Học",
+      "enable": "Bật {{method}}",
+      "notNow": "Để Sau",
+      "success": "Đã bật đăng nhập sinh trắc thành công",
+      "error": "Không thể bật đăng nhập sinh trắc"
+    },
+    "errors": {
+      "invalidCredentials": "Email hoặc mật khẩu không hợp lệ",
+      "networkError": "Lỗi mạng. Vui lòng kiểm tra kết nối.",
+      "serverError": "Lỗi máy chủ. Vui lòng thử lại sau.",
+      "sessionExpired": "Phiên đã hết hạn. Vui lòng đăng nhập lại."
+    }
+  },
+  "home": {
+    "greeting": "Xin chào, {{name}}!",
+    "greetingDefault": "Xin chào!",
+    "welcomeBack": "Chào mừng trở lại",
+    "upcomingAppointments": "Lịch Hẹn Sắp Tới",
+    "noUpcoming": "Không có lịch hẹn sắp tới",
+    "bookNow": "Đặt Lịch Ngay",
+    "findTherapist": "Tìm Chuyên Gia",
+    "viewAll": "Xem Tất Cả",
+    "quickActions": "Thao Tác Nhanh",
+    "myAppointments": "Lịch Hẹn Của Tôi",
+    "browseTherapists": "Duyệt Chuyên Gia",
+    "myProfile": "Hồ Sơ Của Tôi"
+  },
+  "therapists": {
+    "title": "Chuyên Gia Tâm Lý",
+    "searchPlaceholder": "Tìm kiếm chuyên gia...",
+    "filters": {
+      "title": "Bộ Lọc",
+      "specialization": "Chuyên Môn",
+      "language": "Ngôn Ngữ",
+      "priceRange": "Khoảng Giá",
+      "availability": "Lịch Trống",
+      "rating": "Đánh Giá",
+      "apply": "Áp Dụng Bộ Lọc",
+      "clear": "Xóa Tất Cả"
+    },
+    "specializations": {
+      "anxiety": "Lo Âu",
+      "depression": "Trầm Cảm",
+      "relationships": "Mối Quan Hệ",
+      "trauma": "Chấn Thương Tâm Lý",
+      "stress": "Căng Thẳng",
+      "addiction": "Nghiện",
+      "grief": "Mất Mát",
+      "selfEsteem": "Tự Tin",
+      "anger": "Kiểm Soát Cơn Giận",
+      "familyTherapy": "Trị Liệu Gia Đình",
+      "couplesTherapy": "Trị Liệu Cặp Đôi",
+      "childTherapy": "Trị Liệu Trẻ Em"
+    },
+    "card": {
+      "perSession": "/buổi",
+      "yearsExp": "{{years}} năm k.nghiệm",
+      "reviews": "{{count}} đánh giá",
+      "viewProfile": "Xem Hồ Sơ",
+      "bookSession": "Đặt Buổi Hẹn"
+    },
+    "detail": {
+      "about": "Giới Thiệu",
+      "specializations": "Chuyên Môn",
+      "languages": "Ngôn Ngữ",
+      "education": "Học Vấn",
+      "experience": "Kinh Nghiệm",
+      "reviews": "Đánh Giá",
+      "availability": "Lịch Trống",
+      "bookAppointment": "Đặt Lịch Hẹn"
+    },
+    "noResults": "Không tìm thấy chuyên gia",
+    "tryDifferentFilters": "Thử điều chỉnh bộ lọc"
+  },
+  "appointments": {
+    "title": "Lịch Hẹn",
+    "tabs": {
+      "upcoming": "Sắp Tới",
+      "past": "Đã Qua",
+      "cancelled": "Đã Hủy"
+    },
+    "status": {
+      "pending": "Chờ Xác Nhận",
+      "confirmed": "Đã Xác Nhận",
+      "completed": "Hoàn Thành",
+      "cancelled": "Đã Hủy",
+      "noShow": "Vắng Mặt"
+    },
+    "card": {
+      "with": "với",
+      "joinCall": "Tham Gia Cuộc Gọi",
+      "reschedule": "Đổi Lịch",
+      "cancel": "Hủy"
+    },
+    "booking": {
+      "title": "Đặt Lịch Hẹn",
+      "selectDate": "Chọn Ngày",
+      "selectTime": "Chọn Giờ",
+      "sessionType": "Loại Buổi Hẹn",
+      "video": "Gọi Video",
+      "inPerson": "Trực Tiếp",
+      "notes": "Ghi Chú (Tùy Chọn)",
+      "notesPlaceholder": "Bất kỳ chủ đề hoặc mối quan tâm cụ thể nào bạn muốn thảo luận...",
+      "confirmBooking": "Xác Nhận Đặt Lịch",
+      "bookingConfirmed": "Đặt lịch hẹn thành công!"
+    },
+    "cancel": {
+      "title": "Hủy Lịch Hẹn",
+      "message": "Bạn có chắc muốn hủy lịch hẹn này?",
+      "reason": "Lý do hủy",
+      "reasonPlaceholder": "Vui lòng cung cấp lý do...",
+      "confirm": "Có, Hủy",
+      "cancelled": "Đã hủy lịch hẹn"
+    },
+    "empty": {
+      "upcoming": "Không có lịch hẹn sắp tới",
+      "past": "Không có lịch hẹn đã qua",
+      "cancelled": "Không có lịch hẹn đã hủy",
+      "bookFirst": "Đặt buổi hẹn đầu tiên với chuyên gia"
+    }
+  },
+  "profile": {
+    "title": "Hồ Sơ",
+    "editProfile": "Chỉnh Sửa Hồ Sơ",
+    "settings": "Cài Đặt",
+    "edit": {
+      "title": "Chỉnh Sửa Hồ Sơ",
+      "firstName": "Tên",
+      "lastName": "Họ",
+      "displayName": "Tên Hiển Thị",
+      "email": "Email",
+      "phone": "Số Điện Thoại",
+      "bio": "Tiểu Sử",
+      "bioPlaceholder": "Giới thiệu về bạn...",
+      "timezone": "Múi Giờ",
+      "saveChanges": "Lưu Thay Đổi",
+      "changePhoto": "Đổi Ảnh",
+      "takePhoto": "Chụp Ảnh",
+      "chooseFromLibrary": "Chọn Từ Thư Viện",
+      "removePhoto": "Xóa Ảnh",
+      "photoUpdated": "Đã cập nhật ảnh hồ sơ",
+      "photoRemoved": "Đã xóa ảnh hồ sơ",
+      "profileUpdated": "Đã cập nhật hồ sơ thành công"
+    },
+    "menu": {
+      "personalInfo": "Thông Tin Cá Nhân",
+      "security": "Mật Khẩu & Bảo Mật",
+      "notifications": "Thông Báo",
+      "language": "Ngôn Ngữ",
+      "help": "Trợ Giúp & Hỗ Trợ",
+      "about": "Giới Thiệu",
+      "logout": "Đăng Xuất"
+    },
+    "security": {
+      "title": "Mật Khẩu & Bảo Mật",
+      "changePassword": "Đổi Mật Khẩu",
+      "currentPassword": "Mật Khẩu Hiện Tại",
+      "currentPasswordPlaceholder": "Nhập mật khẩu hiện tại",
+      "newPassword": "Mật Khẩu Mới",
+      "newPasswordPlaceholder": "Nhập mật khẩu mới",
+      "confirmPassword": "Xác Nhận Mật Khẩu Mới",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu mới",
+      "updatePassword": "Cập Nhật Mật Khẩu",
+      "passwordChanged": "Mật khẩu đã được thay đổi thành công. Vui lòng đăng nhập lại.",
+      "biometricLogin": "Đăng Nhập Sinh Trắc",
+      "biometricDescription": "Sử dụng {{method}} để đăng nhập",
+      "twoFactor": "Xác Thực Hai Yếu Tố",
+      "twoFactorDescription": "Thêm một lớp bảo mật bổ sung",
+      "activeSessions": "Phiên Đang Hoạt Động",
+      "errors": {
+        "incorrectPassword": "Mật khẩu hiện tại không đúng",
+        "passwordMismatch": "Mật khẩu mới không khớp",
+        "samePassword": "Mật khẩu mới phải khác mật khẩu hiện tại"
+      }
+    },
+    "language": {
+      "title": "Ngôn Ngữ",
+      "subtitle": "Chọn ngôn ngữ ưa thích của bạn",
+      "current": "Hiện tại: {{language}}",
+      "english": "Tiếng Anh",
+      "spanish": "Tiếng Tây Ban Nha",
+      "vietnamese": "Tiếng Việt",
+      "arabic": "Tiếng Ả Rập",
+      "changed": "Đã đổi ngôn ngữ sang {{language}}"
+    },
+    "logout": {
+      "title": "Đăng Xuất",
+      "message": "Bạn có chắc muốn đăng xuất?",
+      "confirm": "Đăng Xuất"
+    }
+  },
+  "validation": {
+    "required": "Trường này là bắt buộc",
+    "email": "Vui lòng nhập email hợp lệ",
+    "phone": "Vui lòng nhập số điện thoại hợp lệ",
+    "minLength": "Phải có ít nhất {{min}} ký tự",
+    "maxLength": "Không được quá {{max}} ký tự",
+    "passwordMatch": "Mật khẩu phải khớp"
+  },
+  "errors": {
+    "general": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "network": "Lỗi mạng. Vui lòng kiểm tra kết nối.",
+    "server": "Lỗi máy chủ. Vui lòng thử lại sau.",
+    "notFound": "Không tìm thấy",
+    "unauthorized": "Vui lòng đăng nhập để tiếp tục",
+    "forbidden": "Bạn không có quyền thực hiện điều này"
+  },
+  "dates": {
+    "today": "Hôm nay",
+    "tomorrow": "Ngày mai",
+    "yesterday": "Hôm qua",
+    "thisWeek": "Tuần này",
+    "nextWeek": "Tuần tới",
+    "thisMonth": "Tháng này"
+  },
+  "time": {
+    "am": "SA",
+    "pm": "CH",
+    "hours": "giờ",
+    "minutes": "phút",
+    "seconds": "giây"
+  }
+}

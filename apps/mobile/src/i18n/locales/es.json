@@ -1,0 +1,370 @@
+{
+  "common": {
+    "appName": "Hopefull",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Exitoso",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "done": "Listo",
+    "next": "Siguiente",
+    "back": "Atrás",
+    "skip": "Omitir",
+    "ok": "OK",
+    "yes": "Sí",
+    "no": "No",
+    "or": "o",
+    "and": "y",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "all": "Todo",
+    "none": "Ninguno",
+    "online": "En línea",
+    "offline": "Desconectado",
+    "tryAgain": "Intentar de nuevo",
+    "continueWith": "o continuar con"
+  },
+  "welcome": {
+    "tagline": "Tu viaje de bienestar mental comienza aquí",
+    "title": "Conecta con terapeutas licenciados",
+    "subtitle": "Reserva sesiones, videollamadas y obtén el apoyo que necesitas — en cualquier momento y lugar.",
+    "lookingForTherapist": "Busco un terapeuta",
+    "iAmTherapist": "Soy terapeuta",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Iniciar Sesión"
+  },
+  "onboarding": {
+    "findTherapist": {
+      "title": "Encuentra Tu Terapeuta",
+      "description": "Conecta con terapeutas licenciados especializados en tus necesidades. Explora perfiles, lee reseñas y encuentra la combinación perfecta."
+    },
+    "bookWithEase": {
+      "title": "Reserva Fácilmente",
+      "description": "Programa citas a tu conveniencia. Elige entre los horarios disponibles y reserva sesiones con solo unos toques."
+    },
+    "secureVideo": {
+      "title": "Sesiones de Video Seguras",
+      "description": "Ten sesiones de video privadas y compatibles con HIPAA desde la comodidad de tu hogar. Tu privacidad y seguridad son nuestra prioridad."
+    },
+    "getStarted": "Comenzar"
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de Nuevo",
+      "subtitle": "Inicia sesión para continuar tu viaje",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "Ingresa tu correo",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "forgotPassword": "¿Olvidaste tu Contraseña?",
+      "signIn": "Iniciar Sesión",
+      "loginWith": "Iniciar sesión con {{method}}",
+      "noAccount": "¿No tienes una cuenta?",
+      "signUp": "Registrarse",
+      "google": "Google",
+      "apple": "Apple",
+      "verificationRequired": "Verificación Requerida",
+      "pleaseLoginWithPassword": "Por favor inicia sesión con tu contraseña",
+      "loginFailed": "Error al Iniciar Sesión"
+    },
+    "register": {
+      "title": "Crear Cuenta",
+      "subtitle": "Únete a Hopefull y comienza tu viaje",
+      "step1Title": "Información Personal",
+      "step2Title": "Crear Contraseña",
+      "firstName": "Nombre",
+      "firstNamePlaceholder": "Ingresa tu nombre",
+      "lastName": "Apellido",
+      "lastNamePlaceholder": "Ingresa tu apellido",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "Ingresa tu correo",
+      "phone": "Número de Teléfono",
+      "phonePlaceholder": "Ingresa tu teléfono",
+      "password": "Contraseña",
+      "passwordPlaceholder": "Crea una contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "confirmPasswordPlaceholder": "Confirma tu contraseña",
+      "createAccount": "Crear Cuenta",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+      "passwordRequirements": {
+        "title": "La contraseña debe tener:",
+        "length": "Al menos 12 caracteres",
+        "uppercase": "Una letra mayúscula",
+        "lowercase": "Una letra minúscula",
+        "number": "Un número",
+        "special": "Un carácter especial"
+      },
+      "errors": {
+        "fillAllFields": "Por favor completa todos los campos",
+        "invalidEmail": "Por favor ingresa un correo válido",
+        "invalidPhone": "Por favor ingresa un teléfono válido",
+        "passwordMismatch": "Las contraseñas no coinciden",
+        "passwordRequirements": "La contraseña no cumple los requisitos"
+      }
+    },
+    "otp": {
+      "title": "Verifica Tu Teléfono",
+      "subtitle": "Ingresa el código de 6 dígitos enviado a",
+      "resendCode": "Reenviar Código",
+      "resendIn": "Reenviar en {{seconds}}s",
+      "verify": "Verificar",
+      "invalidCode": "Código de verificación inválido",
+      "codeSent": "Código de verificación enviado"
+    },
+    "phoneVerify": {
+      "title": "Verificar Número de Teléfono",
+      "subtitle": "Enviaremos un código de verificación a",
+      "sendCode": "Enviar Código de Verificación",
+      "verifying": "Verificando..."
+    },
+    "forgotPassword": {
+      "title": "Olvidé mi Contraseña",
+      "subtitle": "Ingresa tu correo y te enviaremos un código para restablecer tu contraseña",
+      "email": "Correo Electrónico",
+      "emailPlaceholder": "Ingresa tu correo",
+      "sendCode": "Enviar Código",
+      "backToLogin": "Volver al Inicio de Sesión",
+      "resetTitle": "Restablecer Contraseña",
+      "resetSubtitle": "Ingresa el código enviado a tu correo y crea una nueva contraseña",
+      "code": "Código de Verificación",
+      "codePlaceholder": "Ingresa código de 6 dígitos",
+      "newPassword": "Nueva Contraseña",
+      "newPasswordPlaceholder": "Ingresa nueva contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "confirmPasswordPlaceholder": "Confirma nueva contraseña",
+      "resetPassword": "Restablecer Contraseña",
+      "success": "¡Contraseña restablecida exitosamente! Por favor inicia sesión con tu nueva contraseña."
+    },
+    "biometric": {
+      "title": "Habilitar Inicio Biométrico",
+      "subtitle": "Usa {{method}} para iniciar sesión rápida y seguramente",
+      "faceId": "Face ID",
+      "touchId": "Touch ID",
+      "fingerprint": "Huella Digital",
+      "biometric": "Biométricos",
+      "enable": "Habilitar {{method}}",
+      "notNow": "Ahora No",
+      "success": "Inicio biométrico habilitado exitosamente",
+      "error": "Error al habilitar inicio biométrico"
+    },
+    "errors": {
+      "invalidCredentials": "Correo o contraseña inválidos",
+      "networkError": "Error de red. Por favor verifica tu conexión.",
+      "serverError": "Error del servidor. Por favor intenta más tarde.",
+      "sessionExpired": "Tu sesión ha expirado. Por favor inicia sesión de nuevo."
+    }
+  },
+  "home": {
+    "greeting": "¡Hola, {{name}}!",
+    "greetingDefault": "¡Hola!",
+    "welcomeBack": "Bienvenido de nuevo",
+    "upcomingAppointments": "Próximas Citas",
+    "noUpcoming": "No hay citas próximas",
+    "bookNow": "Reservar Ahora",
+    "findTherapist": "Encontrar Terapeuta",
+    "viewAll": "Ver Todo",
+    "quickActions": "Acciones Rápidas",
+    "myAppointments": "Mis Citas",
+    "browseTherapists": "Explorar Terapeutas",
+    "myProfile": "Mi Perfil"
+  },
+  "therapists": {
+    "title": "Terapeutas",
+    "searchPlaceholder": "Buscar terapeutas...",
+    "filters": {
+      "title": "Filtros",
+      "specialization": "Especialización",
+      "language": "Idioma",
+      "priceRange": "Rango de Precio",
+      "availability": "Disponibilidad",
+      "rating": "Calificación",
+      "apply": "Aplicar Filtros",
+      "clear": "Limpiar Todo"
+    },
+    "specializations": {
+      "anxiety": "Ansiedad",
+      "depression": "Depresión",
+      "relationships": "Relaciones",
+      "trauma": "Trauma",
+      "stress": "Estrés",
+      "addiction": "Adicción",
+      "grief": "Duelo",
+      "selfEsteem": "Autoestima",
+      "anger": "Manejo de la Ira",
+      "familyTherapy": "Terapia Familiar",
+      "couplesTherapy": "Terapia de Pareja",
+      "childTherapy": "Terapia Infantil"
+    },
+    "card": {
+      "perSession": "/sesión",
+      "yearsExp": "{{years}} años exp.",
+      "reviews": "{{count}} reseñas",
+      "viewProfile": "Ver Perfil",
+      "bookSession": "Reservar Sesión"
+    },
+    "detail": {
+      "about": "Acerca de",
+      "specializations": "Especializaciones",
+      "languages": "Idiomas",
+      "education": "Educación",
+      "experience": "Experiencia",
+      "reviews": "Reseñas",
+      "availability": "Disponibilidad",
+      "bookAppointment": "Reservar Cita"
+    },
+    "noResults": "No se encontraron terapeutas",
+    "tryDifferentFilters": "Intenta ajustar tus filtros"
+  },
+  "appointments": {
+    "title": "Citas",
+    "tabs": {
+      "upcoming": "Próximas",
+      "past": "Pasadas",
+      "cancelled": "Canceladas"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "confirmed": "Confirmada",
+      "completed": "Completada",
+      "cancelled": "Cancelada",
+      "noShow": "No Asistió"
+    },
+    "card": {
+      "with": "con",
+      "joinCall": "Unirse a Llamada",
+      "reschedule": "Reprogramar",
+      "cancel": "Cancelar"
+    },
+    "booking": {
+      "title": "Reservar Cita",
+      "selectDate": "Seleccionar Fecha",
+      "selectTime": "Seleccionar Hora",
+      "sessionType": "Tipo de Sesión",
+      "video": "Videollamada",
+      "inPerson": "Presencial",
+      "notes": "Notas (Opcional)",
+      "notesPlaceholder": "Algún tema o preocupación específica que te gustaría discutir...",
+      "confirmBooking": "Confirmar Reserva",
+      "bookingConfirmed": "¡Cita reservada exitosamente!"
+    },
+    "cancel": {
+      "title": "Cancelar Cita",
+      "message": "¿Estás seguro de que quieres cancelar esta cita?",
+      "reason": "Motivo de cancelación",
+      "reasonPlaceholder": "Por favor proporciona un motivo...",
+      "confirm": "Sí, Cancelar",
+      "cancelled": "Cita cancelada"
+    },
+    "empty": {
+      "upcoming": "No hay citas próximas",
+      "past": "No hay citas pasadas",
+      "cancelled": "No hay citas canceladas",
+      "bookFirst": "Reserva tu primera sesión con un terapeuta"
+    }
+  },
+  "profile": {
+    "title": "Perfil",
+    "editProfile": "Editar Perfil",
+    "settings": "Configuración",
+    "edit": {
+      "title": "Editar Perfil",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "displayName": "Nombre para Mostrar",
+      "email": "Correo Electrónico",
+      "phone": "Número de Teléfono",
+      "bio": "Biografía",
+      "bioPlaceholder": "Cuéntanos sobre ti...",
+      "timezone": "Zona Horaria",
+      "saveChanges": "Guardar Cambios",
+      "changePhoto": "Cambiar Foto",
+      "takePhoto": "Tomar Foto",
+      "chooseFromLibrary": "Elegir de la Galería",
+      "removePhoto": "Eliminar Foto",
+      "photoUpdated": "Foto de perfil actualizada",
+      "photoRemoved": "Foto de perfil eliminada",
+      "profileUpdated": "Perfil actualizado exitosamente"
+    },
+    "menu": {
+      "personalInfo": "Información Personal",
+      "security": "Contraseña y Seguridad",
+      "notifications": "Notificaciones",
+      "language": "Idioma",
+      "help": "Ayuda y Soporte",
+      "about": "Acerca de",
+      "logout": "Cerrar Sesión"
+    },
+    "security": {
+      "title": "Contraseña y Seguridad",
+      "changePassword": "Cambiar Contraseña",
+      "currentPassword": "Contraseña Actual",
+      "currentPasswordPlaceholder": "Ingresa contraseña actual",
+      "newPassword": "Nueva Contraseña",
+      "newPasswordPlaceholder": "Ingresa nueva contraseña",
+      "confirmPassword": "Confirmar Nueva Contraseña",
+      "confirmPasswordPlaceholder": "Confirma nueva contraseña",
+      "updatePassword": "Actualizar Contraseña",
+      "passwordChanged": "Tu contraseña ha sido cambiada exitosamente. Por favor inicia sesión de nuevo.",
+      "biometricLogin": "Inicio Biométrico",
+      "biometricDescription": "Usa {{method}} para iniciar sesión",
+      "twoFactor": "Autenticación de Dos Factores",
+      "twoFactorDescription": "Añade una capa extra de seguridad",
+      "activeSessions": "Sesiones Activas",
+      "errors": {
+        "incorrectPassword": "La contraseña actual es incorrecta",
+        "passwordMismatch": "Las nuevas contraseñas no coinciden",
+        "samePassword": "La nueva contraseña debe ser diferente a la actual"
+      }
+    },
+    "language": {
+      "title": "Idioma",
+      "subtitle": "Selecciona tu idioma preferido",
+      "current": "Actual: {{language}}",
+      "english": "Inglés",
+      "spanish": "Español",
+      "vietnamese": "Vietnamita",
+      "arabic": "Árabe",
+      "changed": "Idioma cambiado a {{language}}"
+    },
+    "logout": {
+      "title": "Cerrar Sesión",
+      "message": "¿Estás seguro de que quieres cerrar sesión?",
+      "confirm": "Cerrar Sesión"
+    }
+  },
+  "validation": {
+    "required": "Este campo es requerido",
+    "email": "Por favor ingresa un correo válido",
+    "phone": "Por favor ingresa un teléfono válido",
+    "minLength": "Debe tener al menos {{min}} caracteres",
+    "maxLength": "Debe tener máximo {{max}} caracteres",
+    "passwordMatch": "Las contraseñas deben coincidir"
+  },
+  "errors": {
+    "general": "Algo salió mal. Por favor intenta de nuevo.",
+    "network": "Error de red. Por favor verifica tu conexión.",
+    "server": "Error del servidor. Por favor intenta más tarde.",
+    "notFound": "No encontrado",
+    "unauthorized": "Por favor inicia sesión para continuar",
+    "forbidden": "No tienes permiso para hacer esto"
+  },
+  "dates": {
+    "today": "Hoy",
+    "tomorrow": "Mañana",
+    "yesterday": "Ayer",
+    "thisWeek": "Esta Semana",
+    "nextWeek": "Próxima Semana",
+    "thisMonth": "Este Mes"
+  },
+  "time": {
+    "am": "AM",
+    "pm": "PM",
+    "hours": "horas",
+    "minutes": "minutos",
+    "seconds": "segundos"
+  }
+}

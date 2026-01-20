@@ -9,22 +9,25 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../src/store/auth';
 import { useTherapists, useAppointments } from '@/hooks';
 import { Avatar, Rating, Card, Badge } from '@/components/ui';
+import { formatDateTime, formatCurrencyFromCents } from '@/utils/formatting';
 import type { Therapist, Appointment } from '@/types';
 
-const categories = [
-  { id: '1', name: 'Anxiety', icon: 'sad-outline' },
-  { id: '2', name: 'Depression', icon: 'cloud-outline' },
-  { id: '3', name: 'Relationship', icon: 'heart-outline' },
-  { id: '4', name: 'PTSD', icon: 'shield-outline' },
-  { id: '5', name: 'Addiction', icon: 'warning-outline' },
-  { id: '6', name: 'Family', icon: 'people-outline' },
+const categoryConfig = [
+  { id: '1', nameKey: 'therapists.specializations.anxiety', icon: 'sad-outline' },
+  { id: '2', nameKey: 'therapists.specializations.depression', icon: 'cloud-outline' },
+  { id: '3', nameKey: 'therapists.specializations.relationships', icon: 'heart-outline' },
+  { id: '4', nameKey: 'therapists.specializations.trauma', icon: 'shield-outline' },
+  { id: '5', nameKey: 'therapists.specializations.addiction', icon: 'warning-outline' },
+  { id: '6', nameKey: 'therapists.specializations.familyTherapy', icon: 'people-outline' },
 ];
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const isTherapist = user?.role === 'THERAPIST';
 
@@ -63,7 +66,9 @@ export default function HomeScreen() {
         <Ionicons name="star" size={12} color="#FBBF24" />
         <Text style={styles.ratingText}>{therapist.averageRating.toFixed(1)}</Text>
       </View>
-      <Text style={styles.therapistPrice}>${(therapist.hourlyRate / 100).toFixed(0)}/hr</Text>
+      <Text style={styles.therapistPrice}>
+        {formatCurrencyFromCents(therapist.hourlyRate)}/hr
+      </Text>
     </TouchableOpacity>
   );
 
@@ -85,17 +90,11 @@ export default function HomeScreen() {
             {appointment.therapist?.user.firstName} {appointment.therapist?.user.lastName}
           </Text>
           <Text style={styles.appointmentTime}>
-            {new Date(appointment.scheduledAt).toLocaleDateString('en-US', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-            })}
+            {formatDateTime(appointment.scheduledAt)}
           </Text>
         </View>
         <Badge
-          label={appointment.status === 'CONFIRMED' ? 'Confirmed' : 'Pending'}
+          label={appointment.status === 'CONFIRMED' ? t('appointments.status.confirmed') : t('appointments.status.pending')}
           variant={appointment.status === 'CONFIRMED' ? 'success' : 'warning'}
           size="sm"
         />
@@ -116,8 +115,10 @@ export default function HomeScreen() {
     >
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Hello, {user?.firstName || 'there'}</Text>
-          <Text style={styles.subtitle}>How are you feeling today?</Text>
+          <Text style={styles.greeting}>
+            {user?.firstName ? t('home.greeting', { name: user.firstName }) : t('home.greetingDefault')}
+          </Text>
+          <Text style={styles.subtitle}>{t('home.welcomeBack')}</Text>
         </View>
         <TouchableOpacity
           style={styles.notificationButton}
@@ -132,23 +133,23 @@ export default function HomeScreen() {
         onPress={() => router.push('/(tabs)/therapists')}
       >
         <Ionicons name="search" size={20} color="#6B7280" />
-        <Text style={styles.searchPlaceholder}>Search therapists...</Text>
+        <Text style={styles.searchPlaceholder}>{t('therapists.searchPlaceholder')}</Text>
       </TouchableOpacity>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Categories</Text>
+        <Text style={styles.sectionTitle}>{t('therapists.filters.specialization')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {categories.map((category) => (
+          {categoryConfig.map((category) => (
             <TouchableOpacity
               key={category.id}
               style={styles.categoryChip}
               onPress={() => router.push({
                 pathname: '/(tabs)/therapists',
-                params: { specialization: category.name }
+                params: { specialization: t(category.nameKey) }
               })}
             >
               <Ionicons name={category.icon as any} size={20} color="#4F46E5" />
-              <Text style={styles.categoryText}>{category.name}</Text>
+              <Text style={styles.categoryText}>{t(category.nameKey)}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -172,9 +173,9 @@ export default function HomeScreen() {
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Available Now</Text>
+          <Text style={styles.sectionTitle}>{t('common.online')}</Text>
           <TouchableOpacity onPress={() => router.push('/(tabs)/therapists')}>
-            <Text style={styles.seeAllText}>See All</Text>
+            <Text style={styles.seeAllText}>{t('home.viewAll')}</Text>
           </TouchableOpacity>
         </View>
         {therapistsLoading ? (
@@ -184,15 +185,15 @@ export default function HomeScreen() {
             {featuredTherapists.map(renderTherapistCard)}
           </ScrollView>
         ) : (
-          <Text style={styles.emptyText}>No therapists available right now</Text>
+          <Text style={styles.emptyText}>{t('therapists.noResults')}</Text>
         )}
       </View>
 
       <View style={[styles.section, { marginBottom: 100 }]}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+          <Text style={styles.sectionTitle}>{t('home.upcomingAppointments')}</Text>
           <TouchableOpacity onPress={() => router.push('/(tabs)/appointments')}>
-            <Text style={styles.seeAllText}>See All</Text>
+            <Text style={styles.seeAllText}>{t('home.viewAll')}</Text>
           </TouchableOpacity>
         </View>
         {appointmentsLoading ? (
@@ -202,7 +203,7 @@ export default function HomeScreen() {
             {upcomingAppointments.map(renderAppointmentCard)}
           </View>
         ) : (
-          <Text style={styles.emptyText}>No upcoming appointments</Text>
+          <Text style={styles.emptyText}>{t('home.noUpcoming')}</Text>
         )}
       </View>
     </ScrollView>
@@ -210,14 +211,17 @@ export default function HomeScreen() {
 }
 
 function TherapistDashboard() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Welcome, Dr. {user?.lastName}</Text>
-          <Text style={styles.subtitle}>Here's your day at a glance</Text>
+          <Text style={styles.greeting}>
+            {t('home.greeting', { name: `Dr. ${user?.lastName}` })}
+          </Text>
+          <Text style={styles.subtitle}>{t('home.welcomeBack')}</Text>
         </View>
         <TouchableOpacity style={styles.notificationButton}>
           <Ionicons name="notifications-outline" size={24} color="#111827" />
@@ -225,35 +229,35 @@ function TherapistDashboard() {
       </View>
 
       <View style={styles.onlineToggle}>
-        <Text style={styles.onlineLabel}>Online Status</Text>
+        <Text style={styles.onlineLabel}>{t('common.online')}</Text>
         <TouchableOpacity style={styles.toggleButton}>
           <View style={[styles.toggleDot, styles.toggleDotActive]} />
-          <Text style={styles.toggleText}>Online</Text>
+          <Text style={styles.toggleText}>{t('common.online')}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>3</Text>
-          <Text style={styles.statLabel}>Today's Sessions</Text>
+          <Text style={styles.statLabel}>{t('dates.today')}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>$450</Text>
-          <Text style={styles.statLabel}>This Week</Text>
+          <Text style={styles.statLabel}>{t('dates.thisWeek')}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>2</Text>
-          <Text style={styles.statLabel}>Pending</Text>
+          <Text style={styles.statLabel}>{t('appointments.status.pending')}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>4.9</Text>
-          <Text style={styles.statLabel}>Rating</Text>
+          <Text style={styles.statLabel}>{t('therapists.filters.rating')}</Text>
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Upcoming Sessions</Text>
-        <Text style={styles.comingSoon}>No upcoming sessions</Text>
+        <Text style={styles.sectionTitle}>{t('home.upcomingAppointments')}</Text>
+        <Text style={styles.comingSoon}>{t('home.noUpcoming')}</Text>
       </View>
     </ScrollView>
   );

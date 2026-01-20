@@ -15,7 +15,9 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/auth';
+import { useLocaleStore } from '@/store/locale';
 import { Avatar, Card, Button } from '@/components/ui';
 import {
   getBiometricStatus,
@@ -24,6 +26,7 @@ import {
   BiometricStatus,
 } from '@/services/biometric';
 import { authService } from '@/services/auth';
+import { LANGUAGES } from '@/i18n';
 
 interface MenuItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -61,11 +64,15 @@ function MenuItem({
 }
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const { user, logout, biometricEnabled, setBiometricEnabled } = useAuthStore();
+  const { language } = useLocaleStore();
   const [biometricStatus, setBiometricStatus] = useState<BiometricStatus | null>(null);
   const [biometricLoading, setBiometricLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState('');
+
+  const currentLanguageName = LANGUAGES[language]?.name || 'English';
 
   useEffect(() => {
     checkBiometricStatus();
@@ -78,12 +85,12 @@ export default function ProfileScreen() {
 
   const handleEnableBiometric = async () => {
     if (!password.trim()) {
-      Alert.alert('Error', 'Please enter your password');
+      Alert.alert(t('common.error'), t('auth.register.errors.fillAllFields'));
       return;
     }
 
     if (!user?.email) {
-      Alert.alert('Error', 'User email not found');
+      Alert.alert(t('common.error'), t('errors.general'));
       setShowPasswordModal(false);
       setPassword('');
       return;
@@ -102,15 +109,15 @@ export default function ProfileScreen() {
       if (success) {
         setBiometricEnabled(true);
         await checkBiometricStatus();
-        Alert.alert('Success', `${biometricStatus?.biometricName} login enabled`);
+        Alert.alert(t('common.success'), t('auth.biometric.success'));
       } else {
-        Alert.alert('Failed', 'Could not enable biometric login. Please try again.');
+        Alert.alert(t('common.error'), t('auth.biometric.error'));
       }
     } catch (error: any) {
       // Password validation failed
       Alert.alert(
-        'Invalid Password',
-        error.response?.data?.message || 'The password you entered is incorrect. Please try again.'
+        t('common.error'),
+        error.response?.data?.message || t('profile.security.errors.incorrectPassword')
       );
     } finally {
       setBiometricLoading(false);
@@ -128,12 +135,12 @@ export default function ProfileScreen() {
     } else {
       // Disable biometric
       Alert.alert(
-        'Disable Biometric Login',
-        `Are you sure you want to disable ${biometricStatus?.biometricName} login?`,
+        t('profile.security.biometricLogin'),
+        t('profile.logout.message'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Disable',
+            text: t('common.confirm'),
             style: 'destructive',
             onPress: async () => {
               setBiometricLoading(true);
@@ -153,12 +160,12 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
+      t('profile.logout.title'),
+      t('profile.logout.message'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Sign Out',
+          text: t('profile.logout.confirm'),
           style: 'destructive',
           onPress: async () => {
             console.log('Logout: starting');
@@ -178,7 +185,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
+        <Text style={styles.title}>{t('profile.title')}</Text>
       </View>
 
       <View style={styles.profileSection}>
@@ -197,7 +204,7 @@ export default function ProfileScreen() {
         </Text>
         <Text style={styles.userEmail}>{user?.email}</Text>
         <Button
-          title="Edit Profile"
+          title={t('profile.editProfile')}
           onPress={handleEditProfile}
           variant="outline"
           size="sm"
@@ -206,20 +213,20 @@ export default function ProfileScreen() {
       </View>
 
       <Card style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Account</Text>
+        <Text style={styles.sectionTitle}>{t('profile.menu.personalInfo')}</Text>
         <MenuItem
           icon="person-outline"
-          label="Personal Information"
+          label={t('profile.menu.personalInfo')}
           onPress={() => router.push('/profile/personal-info')}
         />
         <MenuItem
           icon="call-outline"
-          label="Phone Number"
+          label={t('auth.register.phone')}
           onPress={() => router.push('/profile/phone')}
         />
         <MenuItem
           icon="lock-closed-outline"
-          label="Password & Security"
+          label={t('profile.menu.security')}
           onPress={() => router.push('/profile/security')}
         />
       </Card>
@@ -227,7 +234,7 @@ export default function ProfileScreen() {
       {/* Biometric Section */}
       {biometricStatus?.isAvailable && (
         <Card style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Security</Text>
+          <Text style={styles.sectionTitle}>{t('profile.security.title')}</Text>
           <View style={styles.biometricItem}>
             <View style={styles.menuIcon}>
               <Ionicons
@@ -237,9 +244,9 @@ export default function ProfileScreen() {
               />
             </View>
             <View style={styles.biometricTextContainer}>
-              <Text style={styles.menuLabel}>{biometricStatus.biometricName} Login</Text>
+              <Text style={styles.menuLabel}>{t('profile.security.biometricLogin')}</Text>
               <Text style={styles.biometricDescription}>
-                Quick sign in with {biometricStatus.biometricType === 'facial' ? 'your face' : 'your fingerprint'}
+                {t('profile.security.biometricDescription', { method: biometricStatus.biometricName })}
               </Text>
             </View>
             <Switch
@@ -254,16 +261,16 @@ export default function ProfileScreen() {
       )}
 
       <Card style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
+        <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
         <MenuItem
           icon="language-outline"
-          label="Language"
+          label={t('profile.menu.language')}
           onPress={() => router.push('/profile/language')}
-          badge="English"
+          badge={currentLanguageName}
         />
         <MenuItem
           icon="notifications-outline"
-          label="Notifications"
+          label={t('profile.menu.notifications')}
           onPress={() => router.push('/profile/notifications')}
         />
         <MenuItem
@@ -288,10 +295,10 @@ export default function ProfileScreen() {
       </Card>
 
       <Card style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Support</Text>
+        <Text style={styles.sectionTitle}>{t('profile.menu.help')}</Text>
         <MenuItem
           icon="help-circle-outline"
-          label="Help Center"
+          label={t('profile.menu.help')}
           onPress={() => router.push('/profile/help')}
         />
         <MenuItem
@@ -323,7 +330,7 @@ export default function ProfileScreen() {
       <Card style={[styles.menuSection, styles.lastSection]}>
         <MenuItem
           icon="log-out-outline"
-          label="Sign Out"
+          label={t('profile.menu.logout')}
           onPress={handleLogout}
           showChevron={false}
           danger
@@ -344,13 +351,15 @@ export default function ProfileScreen() {
           style={styles.modalOverlay}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Enable {biometricStatus?.biometricName} Login</Text>
+            <Text style={styles.modalTitle}>
+              {t('auth.biometric.enable', { method: biometricStatus?.biometricName })}
+            </Text>
             <Text style={styles.modalSubtitle}>
-              Enter your password to enable biometric login
+              {t('profile.security.currentPasswordPlaceholder')}
             </Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="Enter your password"
+              placeholder={t('profile.security.currentPasswordPlaceholder')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -365,7 +374,7 @@ export default function ProfileScreen() {
                 }}
                 disabled={biometricLoading}
               >
-                <Text style={styles.modalButtonCancelText}>Cancel</Text>
+                <Text style={styles.modalButtonCancelText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonEnable, biometricLoading && styles.modalButtonDisabled]}
@@ -375,7 +384,7 @@ export default function ProfileScreen() {
                 {biometricLoading ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
-                  <Text style={styles.modalButtonEnableText}>Enable</Text>
+                  <Text style={styles.modalButtonEnableText}>{t('common.confirm')}</Text>
                 )}
               </TouchableOpacity>
             </View>

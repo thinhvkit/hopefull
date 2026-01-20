@@ -27,8 +27,6 @@ dependencyResolutionManagement {
   versionCatalogs {
     reactAndroidLibs {
       from(files(new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), "../gradle/libs.versions.toml")))
-      // Override Kotlin version to match Compose Compiler 1.5.15 requirements
-      version('kotlin', '1.9.25')
     }
   }
 }

@@ -3,8 +3,11 @@ import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
+import { I18nextProvider } from 'react-i18next';
 import { useAuthStore } from '@/store/auth';
+import { useLocaleStore } from '@/store/locale';
 import { configureGoogleSignIn } from '@/services/social-auth';
+import i18n from '@/i18n';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -65,11 +68,15 @@ function useProtectedRoute() {
 
 export default function RootLayout() {
   const { loadStoredAuth } = useAuthStore();
+  const { initializeLocale } = useLocaleStore();
 
   useEffect(() => {
     const init = async () => {
       // Configure Google Sign-In
       configureGoogleSignIn();
+
+      // Initialize locale and language
+      await initializeLocale();
 
       await loadStoredAuth();
       await SplashScreen.hideAsync();
@@ -80,14 +87,16 @@ export default function RootLayout() {
   useProtectedRoute();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <StatusBar style="auto" />
-      <Stack
-        screenOptions={({ route }) => ({
-          headerShown: false,
-          presentation: route.name === 'therapist/[id]' ? 'card' : undefined,
-        })}
-      />
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={queryClient}>
+        <StatusBar style="auto" />
+        <Stack
+          screenOptions={({ route }) => ({
+            headerShown: false,
+            presentation: route.name === 'therapist/[id]' ? 'card' : undefined,
+          })}
+        />
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 }

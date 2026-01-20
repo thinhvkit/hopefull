@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Button, Input } from '@/components/ui';
 import { register } from '@/services/auth';
 import { useAuthStore } from '@/store/auth';
@@ -45,15 +46,16 @@ interface FormErrors {
 }
 
 const PASSWORD_REQUIREMENTS = [
-  { label: 'At least 12 characters', test: (p: string) => p.length >= 12 },
-  { label: 'One uppercase letter', test: (p: string) => /[A-Z]/.test(p) },
-  { label: 'One lowercase letter', test: (p: string) => /[a-z]/.test(p) },
-  { label: 'One number', test: (p: string) => /[0-9]/.test(p) },
-  { label: 'One special character', test: (p: string) => /[!@#$%^&*(),.?":{}|<>]/.test(p) },
+  { labelKey: 'auth.register.passwordRequirements.length', test: (p: string) => p.length >= 12 },
+  { labelKey: 'auth.register.passwordRequirements.uppercase', test: (p: string) => /[A-Z]/.test(p) },
+  { labelKey: 'auth.register.passwordRequirements.lowercase', test: (p: string) => /[a-z]/.test(p) },
+  { labelKey: 'auth.register.passwordRequirements.number', test: (p: string) => /[0-9]/.test(p) },
+  { labelKey: 'auth.register.passwordRequirements.special', test: (p: string) => /[!@#$%^&*(),.?":{}|<>]/.test(p) },
 ];
 
 export default function RegisterScreen() {
   const { role = 'USER' } = useLocalSearchParams<{ role?: string }>();
+  const { t } = useTranslation();
   const { setUser, setTokens } = useAuthStore();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -92,7 +94,7 @@ export default function RegisterScreen() {
       }
 
       if (!result.success) {
-        Alert.alert('Error', result.error || 'Google Sign-In failed');
+        Alert.alert(t('common.error'), result.error || t('auth.login.loginFailed'));
         setGoogleLoading(false);
         return;
       }
@@ -101,7 +103,7 @@ export default function RegisterScreen() {
       setUser(result.user);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Google Sign-In failed');
+      Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
     } finally {
       setGoogleLoading(false);
     }
@@ -118,7 +120,7 @@ export default function RegisterScreen() {
       }
 
       if (!result.success) {
-        Alert.alert('Error', result.error || 'Apple Sign-In failed');
+        Alert.alert(t('common.error'), result.error || t('auth.login.loginFailed'));
         setAppleLoading(false);
         return;
       }
@@ -127,7 +129,7 @@ export default function RegisterScreen() {
       setUser(result.user);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Apple Sign-In failed');
+      Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
     } finally {
       setAppleLoading(false);
     }
@@ -137,18 +139,18 @@ export default function RegisterScreen() {
     const newErrors: FormErrors = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+      newErrors.firstName = t('validation.required');
     }
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+      newErrors.lastName = t('validation.required');
     }
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('validation.required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
+      newErrors.email = t('auth.register.errors.invalidEmail');
     }
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
+      newErrors.phone = t('validation.required');
     }
 
     setErrors(newErrors);
@@ -162,17 +164,17 @@ export default function RegisterScreen() {
       req.test(formData.password)
     );
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('validation.required');
     } else if (!allPasswordRequirementsMet) {
-      newErrors.password = 'Password does not meet all requirements';
+      newErrors.password = t('auth.register.errors.passwordRequirements');
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t('auth.register.errors.passwordMismatch');
     }
 
     if (!formData.acceptTerms) {
-      newErrors.acceptTerms = 'You must accept the Terms & Conditions';
+      newErrors.acceptTerms = t('validation.required');
     }
 
     setErrors(newErrors);
@@ -225,7 +227,7 @@ export default function RegisterScreen() {
         });
       }
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.message || 'Please try again');
+      Alert.alert(t('common.error'), error.message || t('errors.general'));
     } finally {
       setLoading(false);
     }
@@ -252,7 +254,7 @@ export default function RegisterScreen() {
           ) : (
             <>
               <Ionicons name="logo-google" size={20} color="#111827" />
-              <Text style={styles.socialButtonText}>Google</Text>
+              <Text style={styles.socialButtonText}>{t('auth.login.google')}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -268,7 +270,7 @@ export default function RegisterScreen() {
             ) : (
               <>
                 <Ionicons name="logo-apple" size={20} color="#111827" />
-                <Text style={styles.socialButtonText}>Apple</Text>
+                <Text style={styles.socialButtonText}>{t('auth.login.apple')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -277,13 +279,13 @@ export default function RegisterScreen() {
 
       <View style={styles.dividerContainer}>
         <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>or register with email</Text>
+        <Text style={styles.dividerText}>{t('common.continueWith')}</Text>
         <View style={styles.dividerLine} />
       </View>
 
       <Input
-        label="First Name"
-        placeholder="Enter your first name"
+        label={t('auth.register.firstName')}
+        placeholder={t('auth.register.firstNamePlaceholder')}
         value={formData.firstName}
         onChangeText={(v) => updateField('firstName', v)}
         error={errors.firstName}
@@ -291,8 +293,8 @@ export default function RegisterScreen() {
         autoCapitalize="words"
       />
       <Input
-        label="Last Name"
-        placeholder="Enter your last name"
+        label={t('auth.register.lastName')}
+        placeholder={t('auth.register.lastNamePlaceholder')}
         value={formData.lastName}
         onChangeText={(v) => updateField('lastName', v)}
         error={errors.lastName}
@@ -300,8 +302,8 @@ export default function RegisterScreen() {
         autoCapitalize="words"
       />
       <Input
-        label="Email"
-        placeholder="Enter your email"
+        label={t('auth.register.email')}
+        placeholder={t('auth.register.emailPlaceholder')}
         value={formData.email}
         onChangeText={(v) => updateField('email', v)}
         error={errors.email}
@@ -310,15 +312,15 @@ export default function RegisterScreen() {
         autoCapitalize="none"
       />
       <Input
-        label="Phone Number"
-        placeholder="+1 (555) 000-0000"
+        label={t('auth.register.phone')}
+        placeholder={t('auth.register.phonePlaceholder')}
         value={formData.phone}
         onChangeText={(v) => updateField('phone', v)}
         error={errors.phone}
         leftIcon="call-outline"
         keyboardType="phone-pad"
       />
-      <Button title="Continue" onPress={handleNext} fullWidth style={styles.button} />
+      <Button title={t('common.next')} onPress={handleNext} fullWidth style={styles.button} />
     </>
   );
 
@@ -326,11 +328,11 @@ export default function RegisterScreen() {
     <>
       <TouchableOpacity style={styles.stepBackButton} onPress={() => setStep(1)}>
         <Ionicons name="arrow-back" size={18} color="#4F46E5" />
-        <Text style={styles.stepBackText}>Back to Personal Info</Text>
+        <Text style={styles.stepBackText}>{t('common.back')}</Text>
       </TouchableOpacity>
 
       <View style={styles.verificationSection}>
-        <Text style={styles.verificationLabel}>Verify account via:</Text>
+        <Text style={styles.verificationLabel}>{t('auth.register.step1Title')}:</Text>
         <View style={styles.verificationOptions}>
           <TouchableOpacity
             style={[
@@ -350,7 +352,7 @@ export default function RegisterScreen() {
                 formData.verificationMethod === 'email' && styles.verificationOptionTextActive,
               ]}
             >
-              Email
+              {t('auth.register.email')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -371,15 +373,15 @@ export default function RegisterScreen() {
                 formData.verificationMethod === 'phone' && styles.verificationOptionTextActive,
               ]}
             >
-              Phone
+              {t('auth.register.phone')}
             </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <Input
-        label="Password"
-        placeholder="Create a password"
+        label={t('auth.register.password')}
+        placeholder={t('auth.register.passwordPlaceholder')}
         value={formData.password}
         onChangeText={(v) => updateField('password', v)}
         error={errors.password}
@@ -398,7 +400,7 @@ export default function RegisterScreen() {
                 color={met ? '#22C55E' : '#9CA3AF'}
               />
               <Text style={[styles.requirementText, met && styles.requirementMet]}>
-                {req.label}
+                {t(req.labelKey)}
               </Text>
             </View>
           );
@@ -406,8 +408,8 @@ export default function RegisterScreen() {
       </View>
 
       <Input
-        label="Confirm Password"
-        placeholder="Confirm your password"
+        label={t('auth.register.confirmPassword')}
+        placeholder={t('auth.register.confirmPasswordPlaceholder')}
         value={formData.confirmPassword}
         onChangeText={(v) => updateField('confirmPassword', v)}
         error={errors.confirmPassword}
@@ -431,7 +433,7 @@ export default function RegisterScreen() {
       {errors.acceptTerms && <Text style={styles.errorText}>{errors.acceptTerms}</Text>}
 
       <Button
-        title="Create Account"
+        title={t('auth.register.createAccount')}
         onPress={handleRegister}
         loading={loading}
         fullWidth
@@ -454,12 +456,8 @@ export default function RegisterScreen() {
         </TouchableOpacity>
 
         <View style={styles.header}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>
-            {role === 'THERAPIST'
-              ? 'Join as a therapist and help others'
-              : 'Start your wellness journey today'}
-          </Text>
+          <Text style={styles.title}>{t('auth.register.title')}</Text>
+          <Text style={styles.subtitle}>{t('auth.register.subtitle')}</Text>
         </View>
 
         <View style={styles.stepIndicator}>
@@ -477,9 +475,9 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account?</Text>
+          <Text style={styles.footerText}>{t('auth.register.alreadyHaveAccount')}</Text>
           <TouchableOpacity onPress={() => router.push('/auth/login')}>
-            <Text style={styles.footerLink}>Sign In</Text>
+            <Text style={styles.footerLink}>{t('auth.login.signIn')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
