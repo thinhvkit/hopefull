@@ -221,6 +221,7 @@
   },
   "appointments": {
     "title": "المواعيد",
+    "searchPlaceholder": "البحث باسم المعالج...",
     "tabs": {
       "upcoming": "القادمة",
       "past": "السابقة",
@@ -236,8 +237,28 @@
     "card": {
       "with": "مع",
       "joinCall": "انضم للمكالمة",
+      "join": "انضم",
       "reschedule": "إعادة الجدولة",
-      "cancel": "إلغاء"
+      "cancel": "إلغاء",
+      "viewDetails": "عرض التفاصيل",
+      "leaveFeedback": "اترك تقييماً",
+      "bookAgain": "احجز مرة أخرى"
+    },
+    "countdown": {
+      "startsIn": "يبدأ بعد",
+      "days": "ي",
+      "hours": "س",
+      "minutes": "د"
+    },
+    "calendar": {
+      "title": "التقويم",
+      "sun": "أحد",
+      "mon": "إثن",
+      "tue": "ثلا",
+      "wed": "أرب",
+      "thu": "خمي",
+      "fri": "جمع",
+      "sat": "سبت"
     },
     "booking": {
       "title": "حجز موعد",
@@ -251,13 +272,99 @@
       "confirmBooking": "تأكيد الحجز",
       "bookingConfirmed": "تم حجز الموعد بنجاح!"
     },
+    "details": {
+      "title": "تفاصيل الموعد",
+      "sessionDetails": "تفاصيل الجلسة",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "duration": "المدة",
+      "type": "النوع",
+      "videoCall": "مكالمة فيديو",
+      "bookingNotes": "ملاحظات الحجز",
+      "noBookingNotes": "لا توجد ملاحظات",
+      "sessionNotes": "ملاحظات الجلسة",
+      "noSessionNotes": "ستتوفر ملاحظات الجلسة بعد الموعد",
+      "invoice": "الفاتورة",
+      "sessionFee": "رسوم الجلسة",
+      "platformFee": "رسوم المنصة",
+      "discount": "الخصم",
+      "total": "المجموع",
+      "paid": "مدفوع",
+      "pending": "الدفع معلق",
+      "yourFeedback": "تقييمك",
+      "noFeedback": "لم تترك تقييماً بعد",
+      "joinSession": "انضم للجلسة",
+      "reschedule": "إعادة الجدولة",
+      "cancelAppointment": "إلغاء الموعد"
+    },
     "cancel": {
       "title": "إلغاء الموعد",
       "message": "هل أنت متأكد من رغبتك في إلغاء هذا الموعد؟",
+      "warning": "لا يمكن التراجع عن هذا الإجراء. يرجى مراجعة سياسة الإلغاء قبل المتابعة.",
       "reason": "سبب الإلغاء",
       "reasonPlaceholder": "يرجى تقديم سبب...",
       "confirm": "نعم، إلغاء",
-      "cancelled": "تم إلغاء الموعد"
+      "cancelled": "تم إلغاء الموعد",
+      "reasonTitle": "لماذا تلغي؟",
+      "reasons": {
+        "scheduleConflict": "تعارض في الجدول",
+        "foundAnother": "وجدت معالجاً آخر",
+        "personalReasons": "أسباب شخصية",
+        "feelingBetter": "أشعر بتحسن",
+        "financial": "أسباب مالية",
+        "other": "آخر"
+      },
+      "additionalInfo": "معلومات إضافية",
+      "additionalInfoPlaceholder": "يرجى مشاركة أي تفاصيل إضافية (اختياري)...",
+      "policyTitle": "سياسة الإلغاء",
+      "policyMore24": "أكثر من 24 ساعة: استرداد كامل",
+      "policyLess24": "2-24 ساعة قبل: استرداد 50%",
+      "policyLess2": "أقل من ساعتين: لا استرداد",
+      "policy": {
+        "fullRefund": "تم الإلغاء قبل أكثر من 24 ساعة من الموعد",
+        "halfRefund": "تم الإلغاء بين 2-24 ساعة قبل الموعد",
+        "noRefund": "تم الإلغاء قبل أقل من ساعتين من الموعد"
+      },
+      "yourRefund": "استردادك",
+      "willBeRefunded": "سيتم استرداده",
+      "pleaseSelectReason": "يرجى اختيار سبب الإلغاء",
+      "keepAppointment": "الاحتفاظ بالموعد",
+      "confirmCancel": "إلغاء الموعد",
+      "success": "تم إلغاء الموعد",
+      "successMessage": "تم إلغاء موعدك. سيتم استرداد {{refundAmount}} إلى طريقة الدفع الأصلية خلال 5-7 أيام عمل."
+    },
+    "review": {
+      "title": "اترك تقييماً",
+      "sessionOn": "الجلسة بتاريخ",
+      "howWasSession": "كيف كانت جلستك؟",
+      "tapToRate": "اضغط على نجمة لتقييم تجربتك",
+      "rating": {
+        "terrible": "سيء جداً",
+        "poor": "سيء",
+        "okay": "مقبول",
+        "good": "جيد",
+        "excellent": "ممتاز"
+      },
+      "whatDidYouLike": "ما الذي أعجبك؟",
+      "selectAll": "اختر كل ما ينطبق",
+      "feedback": {
+        "professional": "محترف",
+        "empathetic": "متعاطف",
+        "helpful": "مفيد",
+        "goodListener": "مستمع جيد",
+        "knowledgeable": "ذو معرفة",
+        "punctual": "ملتزم بالوقت"
+      },
+      "additionalComments": "تعليقات إضافية",
+      "optional": "اختياري",
+      "commentsPlaceholder": "شارك أفكارك حول الجلسة...",
+      "anonymous": "نشر بشكل مجهول",
+      "anonymousDescription": "لن يظهر اسمك علنياً مع هذا التقييم",
+      "skip": "تخطي",
+      "submit": "إرسال التقييم",
+      "pleaseSelectRating": "يرجى اختيار تقييم",
+      "success": "شكراً لك!",
+      "successMessage": "تساعد ملاحظاتك المرضى الآخرين في العثور على المعالج المناسب."
     },
     "empty": {
       "upcoming": "لا توجد مواعيد قادمة",

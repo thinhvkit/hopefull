@@ -13,6 +13,7 @@
     "db:push": "turbo run db:push --filter=@hopefull/api",
     "db:migrate": "turbo run db:migrate --filter=@hopefull/api",
     "db:studio": "pnpm --filter @hopefull/api db:studio",
+    "db:seed": "pnpm --filter @hopefull/api db:seed",
     "api:dev": "pnpm --filter @hopefull/api dev",
     "mobile:dev": "pnpm --filter @hopefull/mobile dev",
     "admin:dev": "pnpm --filter @hopefull/admin dev",

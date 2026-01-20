@@ -221,6 +221,7 @@
   },
   "appointments": {
     "title": "Lịch Hẹn",
+    "searchPlaceholder": "Tìm theo tên chuyên gia...",
     "tabs": {
       "upcoming": "Sắp Tới",
       "past": "Đã Qua",
@@ -236,8 +237,28 @@
     "card": {
       "with": "với",
       "joinCall": "Tham Gia Cuộc Gọi",
+      "join": "Tham Gia",
       "reschedule": "Đổi Lịch",
-      "cancel": "Hủy"
+      "cancel": "Hủy",
+      "viewDetails": "Xem Chi Tiết",
+      "leaveFeedback": "Để Lại Đánh Giá",
+      "bookAgain": "Đặt Lại"
+    },
+    "countdown": {
+      "startsIn": "Bắt đầu sau",
+      "days": "n",
+      "hours": "g",
+      "minutes": "p"
+    },
+    "calendar": {
+      "title": "Lịch",
+      "sun": "CN",
+      "mon": "T2",
+      "tue": "T3",
+      "wed": "T4",
+      "thu": "T5",
+      "fri": "T6",
+      "sat": "T7"
     },
     "booking": {
       "title": "Đặt Lịch Hẹn",
@@ -251,13 +272,99 @@
       "confirmBooking": "Xác Nhận Đặt Lịch",
       "bookingConfirmed": "Đặt lịch hẹn thành công!"
     },
+    "details": {
+      "title": "Chi Tiết Lịch Hẹn",
+      "sessionDetails": "Chi Tiết Buổi Hẹn",
+      "date": "Ngày",
+      "time": "Giờ",
+      "duration": "Thời Lượng",
+      "type": "Loại",
+      "videoCall": "Gọi Video",
+      "bookingNotes": "Ghi Chú Đặt Lịch",
+      "noBookingNotes": "Không có ghi chú",
+      "sessionNotes": "Ghi Chú Buổi Hẹn",
+      "noSessionNotes": "Ghi chú buổi hẹn sẽ có sau khi hoàn thành",
+      "invoice": "Hóa Đơn",
+      "sessionFee": "Phí Buổi Hẹn",
+      "platformFee": "Phí Nền Tảng",
+      "discount": "Giảm Giá",
+      "total": "Tổng Cộng",
+      "paid": "Đã Thanh Toán",
+      "pending": "Chờ Thanh Toán",
+      "yourFeedback": "Đánh Giá Của Bạn",
+      "noFeedback": "Bạn chưa để lại đánh giá",
+      "joinSession": "Tham Gia Buổi Hẹn",
+      "reschedule": "Đổi Lịch",
+      "cancelAppointment": "Hủy Lịch Hẹn"
+    },
     "cancel": {
       "title": "Hủy Lịch Hẹn",
       "message": "Bạn có chắc muốn hủy lịch hẹn này?",
+      "warning": "Hành động này không thể hoàn tác. Vui lòng xem chính sách hủy trước khi tiếp tục.",
       "reason": "Lý do hủy",
       "reasonPlaceholder": "Vui lòng cung cấp lý do...",
       "confirm": "Có, Hủy",
-      "cancelled": "Đã hủy lịch hẹn"
+      "cancelled": "Đã hủy lịch hẹn",
+      "reasonTitle": "Tại sao bạn hủy?",
+      "reasons": {
+        "scheduleConflict": "Xung đột lịch trình",
+        "foundAnother": "Đã tìm được chuyên gia khác",
+        "personalReasons": "Lý do cá nhân",
+        "feelingBetter": "Cảm thấy tốt hơn",
+        "financial": "Lý do tài chính",
+        "other": "Khác"
+      },
+      "additionalInfo": "Thông Tin Bổ Sung",
+      "additionalInfoPlaceholder": "Vui lòng chia sẻ thêm chi tiết (tùy chọn)...",
+      "policyTitle": "Chính Sách Hủy",
+      "policyMore24": "Hơn 24 giờ trước: Hoàn tiền 100%",
+      "policyLess24": "2-24 giờ trước: Hoàn tiền 50%",
+      "policyLess2": "Dưới 2 giờ trước: Không hoàn tiền",
+      "policy": {
+        "fullRefund": "Hủy hơn 24 giờ trước lịch hẹn",
+        "halfRefund": "Hủy từ 2-24 giờ trước lịch hẹn",
+        "noRefund": "Hủy dưới 2 giờ trước lịch hẹn"
+      },
+      "yourRefund": "Hoàn Tiền Của Bạn",
+      "willBeRefunded": "sẽ được hoàn lại",
+      "pleaseSelectReason": "Vui lòng chọn lý do hủy",
+      "keepAppointment": "Giữ Lịch Hẹn",
+      "confirmCancel": "Hủy Lịch Hẹn",
+      "success": "Đã Hủy Lịch Hẹn",
+      "successMessage": "Lịch hẹn của bạn đã được hủy. {{refundAmount}} sẽ được hoàn lại vào phương thức thanh toán ban đầu trong 5-7 ngày làm việc."
+    },
+    "review": {
+      "title": "Để Lại Đánh Giá",
+      "sessionOn": "Buổi hẹn ngày",
+      "howWasSession": "Buổi hẹn của bạn thế nào?",
+      "tapToRate": "Chạm vào sao để đánh giá trải nghiệm",
+      "rating": {
+        "terrible": "Rất Tệ",
+        "poor": "Tệ",
+        "okay": "Bình Thường",
+        "good": "Tốt",
+        "excellent": "Xuất Sắc"
+      },
+      "whatDidYouLike": "Bạn thích điều gì?",
+      "selectAll": "Chọn tất cả các mục phù hợp",
+      "feedback": {
+        "professional": "Chuyên Nghiệp",
+        "empathetic": "Đồng Cảm",
+        "helpful": "Hữu Ích",
+        "goodListener": "Biết Lắng Nghe",
+        "knowledgeable": "Hiểu Biết",
+        "punctual": "Đúng Giờ"
+      },
+      "additionalComments": "Nhận Xét Thêm",
+      "optional": "Tùy Chọn",
+      "commentsPlaceholder": "Chia sẻ suy nghĩ của bạn về buổi hẹn...",
+      "anonymous": "Đăng Ẩn Danh",
+      "anonymousDescription": "Tên của bạn sẽ không hiển thị công khai với đánh giá này",
+      "skip": "Bỏ Qua",
+      "submit": "Gửi Đánh Giá",
+      "pleaseSelectRating": "Vui lòng chọn đánh giá",
+      "success": "Cảm Ơn Bạn!",
+      "successMessage": "Đánh giá của bạn giúp các bệnh nhân khác tìm được chuyên gia phù hợp."
     },
     "empty": {
       "upcoming": "Không có lịch hẹn sắp tới",

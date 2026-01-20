@@ -160,16 +160,73 @@ export class TherapistsService {
       (a) => a.dayOfWeek === dayOfWeek,
     );
 
-    // Return available time slots
+    // Generate 30-minute time slots from availability ranges
+    const slots: { startTime: string; endTime: string }[] = [];
+    const slotDuration = 30; // 30 minutes per slot
+
+    for (const availability of dayAvailability) {
+      const [startHour, startMin] = availability.startTime.split(':').map(Number);
+      const [endHour, endMin] = availability.endTime.split(':').map(Number);
+
+      let currentHour = startHour;
+      let currentMin = startMin;
+
+      while (
+        currentHour < endHour ||
+        (currentHour === endHour && currentMin < endMin)
+      ) {
+        const startTime = `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`;
+
+        // Calculate end time of this slot
+        let endSlotMin = currentMin + slotDuration;
+        let endSlotHour = currentHour;
+        if (endSlotMin >= 60) {
+          endSlotMin -= 60;
+          endSlotHour += 1;
+        }
+
+        // Don't add slot if it exceeds the availability end time
+        if (
+          endSlotHour > endHour ||
+          (endSlotHour === endHour && endSlotMin > endMin)
+        ) {
+          break;
+        }
+
+        const endTime = `${String(endSlotHour).padStart(2, '0')}:${String(endSlotMin).padStart(2, '0')}`;
+
+        slots.push({ startTime, endTime });
+
+        // Move to next slot
+        currentMin += slotDuration;
+        if (currentMin >= 60) {
+          currentMin -= 60;
+          currentHour += 1;
+        }
+      }
+    }
+
+    // Filter out slots that are already booked
+    const bookedSlots = therapist.appointments.map((a) => {
+      const appointmentDate = new Date(a.scheduledAt);
+      return {
+        startTime: `${String(appointmentDate.getHours()).padStart(2, '0')}:${String(appointmentDate.getMinutes()).padStart(2, '0')}`,
+        duration: a.duration,
+      };
+    });
+
+    // Remove booked time slots
+    const availableSlots = slots.filter((slot) => {
+      const slotStart = slot.startTime;
+      return !bookedSlots.some((booked) => booked.startTime === slotStart);
+    });
+
     return {
       date,
-      slots: dayAvailability.map((a) => ({
-        startTime: a.startTime,
-        endTime: a.endTime,
-      })),
-      bookedSlots: therapist.appointments.map((a) => ({
-        time: a.scheduledAt,
-        duration: a.duration,
+      slots: availableSlots,
+      bookedSlots: bookedSlots.map((b) => ({
+        startTime: b.startTime,
+        duration: b.duration,
       })),
     };
   }

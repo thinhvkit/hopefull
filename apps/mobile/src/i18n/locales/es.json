@@ -221,6 +221,7 @@
   },
   "appointments": {
     "title": "Citas",
+    "searchPlaceholder": "Buscar por nombre del terapeuta...",
     "tabs": {
       "upcoming": "Próximas",
       "past": "Pasadas",
@@ -236,8 +237,28 @@
     "card": {
       "with": "con",
       "joinCall": "Unirse a Llamada",
+      "join": "Unirse",
       "reschedule": "Reprogramar",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "viewDetails": "Ver Detalles",
+      "leaveFeedback": "Dejar Comentario",
+      "bookAgain": "Reservar de Nuevo"
+    },
+    "countdown": {
+      "startsIn": "Comienza en",
+      "days": "d",
+      "hours": "h",
+      "minutes": "m"
+    },
+    "calendar": {
+      "title": "Calendario",
+      "sun": "Dom",
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb"
     },
     "booking": {
       "title": "Reservar Cita",
@@ -251,13 +272,99 @@
       "confirmBooking": "Confirmar Reserva",
       "bookingConfirmed": "¡Cita reservada exitosamente!"
     },
+    "details": {
+      "title": "Detalles de la Cita",
+      "sessionDetails": "Detalles de la Sesión",
+      "date": "Fecha",
+      "time": "Hora",
+      "duration": "Duración",
+      "type": "Tipo",
+      "videoCall": "Videollamada",
+      "bookingNotes": "Notas de Reserva",
+      "noBookingNotes": "Sin notas proporcionadas",
+      "sessionNotes": "Notas de la Sesión",
+      "noSessionNotes": "Las notas de la sesión estarán disponibles después de la cita",
+      "invoice": "Factura",
+      "sessionFee": "Tarifa de Sesión",
+      "platformFee": "Tarifa de Plataforma",
+      "discount": "Descuento",
+      "total": "Total",
+      "paid": "Pagado",
+      "pending": "Pago Pendiente",
+      "yourFeedback": "Tu Comentario",
+      "noFeedback": "Aún no has dejado comentario",
+      "joinSession": "Unirse a la Sesión",
+      "reschedule": "Reprogramar",
+      "cancelAppointment": "Cancelar Cita"
+    },
     "cancel": {
       "title": "Cancelar Cita",
       "message": "¿Estás seguro de que quieres cancelar esta cita?",
+      "warning": "Esta acción no se puede deshacer. Por favor revisa la política de cancelación antes de proceder.",
       "reason": "Motivo de cancelación",
       "reasonPlaceholder": "Por favor proporciona un motivo...",
       "confirm": "Sí, Cancelar",
-      "cancelled": "Cita cancelada"
+      "cancelled": "Cita cancelada",
+      "reasonTitle": "¿Por qué estás cancelando?",
+      "reasons": {
+        "scheduleConflict": "Conflicto de horario",
+        "foundAnother": "Encontré otro terapeuta",
+        "personalReasons": "Razones personales",
+        "feelingBetter": "Me siento mejor",
+        "financial": "Razones financieras",
+        "other": "Otro"
+      },
+      "additionalInfo": "Información Adicional",
+      "additionalInfoPlaceholder": "Por favor comparte detalles adicionales (opcional)...",
+      "policyTitle": "Política de Cancelación",
+      "policyMore24": "Más de 24 horas antes: Reembolso completo",
+      "policyLess24": "2-24 horas antes: 50% de reembolso",
+      "policyLess2": "Menos de 2 horas antes: Sin reembolso",
+      "policy": {
+        "fullRefund": "Cancelado más de 24 horas antes de la cita",
+        "halfRefund": "Cancelado entre 2-24 horas antes de la cita",
+        "noRefund": "Cancelado menos de 2 horas antes de la cita"
+      },
+      "yourRefund": "Tu Reembolso",
+      "willBeRefunded": "será reembolsado",
+      "pleaseSelectReason": "Por favor selecciona un motivo de cancelación",
+      "keepAppointment": "Mantener Cita",
+      "confirmCancel": "Cancelar Cita",
+      "success": "Cita Cancelada",
+      "successMessage": "Tu cita ha sido cancelada. {{refundAmount}} será reembolsado a tu método de pago original en 5-7 días hábiles."
+    },
+    "review": {
+      "title": "Dejar Comentario",
+      "sessionOn": "Sesión del",
+      "howWasSession": "¿Cómo fue tu sesión?",
+      "tapToRate": "Toca una estrella para calificar tu experiencia",
+      "rating": {
+        "terrible": "Terrible",
+        "poor": "Malo",
+        "okay": "Regular",
+        "good": "Bueno",
+        "excellent": "Excelente"
+      },
+      "whatDidYouLike": "¿Qué te gustó?",
+      "selectAll": "Selecciona todos los que apliquen",
+      "feedback": {
+        "professional": "Profesional",
+        "empathetic": "Empático",
+        "helpful": "Útil",
+        "goodListener": "Buen Oyente",
+        "knowledgeable": "Conocedor",
+        "punctual": "Puntual"
+      },
+      "additionalComments": "Comentarios Adicionales",
+      "optional": "Opcional",
+      "commentsPlaceholder": "Comparte tus pensamientos sobre la sesión...",
+      "anonymous": "Publicar Anónimamente",
+      "anonymousDescription": "Tu nombre no se mostrará públicamente con esta reseña",
+      "skip": "Omitir",
+      "submit": "Enviar Reseña",
+      "pleaseSelectRating": "Por favor selecciona una calificación",
+      "success": "¡Gracias!",
+      "successMessage": "Tu comentario ayuda a otros pacientes a encontrar el terapeuta adecuado."
     },
     "empty": {
       "upcoming": "No hay citas próximas",

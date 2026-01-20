@@ -221,6 +221,7 @@
   },
   "appointments": {
     "title": "Appointments",
+    "searchPlaceholder": "Search by therapist name...",
     "tabs": {
       "upcoming": "Upcoming",
       "past": "Past",
@@ -236,8 +237,28 @@
     "card": {
       "with": "with",
       "joinCall": "Join Call",
+      "join": "Join",
       "reschedule": "Reschedule",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "viewDetails": "View Details",
+      "leaveFeedback": "Leave Feedback",
+      "bookAgain": "Book Again"
+    },
+    "countdown": {
+      "startsIn": "Starts in",
+      "days": "d",
+      "hours": "h",
+      "minutes": "m"
+    },
+    "calendar": {
+      "title": "Calendar",
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
     },
     "booking": {
       "title": "Book Appointment",
@@ -251,13 +272,99 @@
       "confirmBooking": "Confirm Booking",
       "bookingConfirmed": "Appointment booked successfully!"
     },
+    "details": {
+      "title": "Appointment Details",
+      "sessionDetails": "Session Details",
+      "date": "Date",
+      "time": "Time",
+      "duration": "Duration",
+      "type": "Type",
+      "videoCall": "Video Call",
+      "bookingNotes": "Booking Notes",
+      "noBookingNotes": "No notes provided",
+      "sessionNotes": "Session Notes",
+      "noSessionNotes": "Session notes will be available after the appointment",
+      "invoice": "Invoice",
+      "sessionFee": "Session Fee",
+      "platformFee": "Platform Fee",
+      "discount": "Discount",
+      "total": "Total",
+      "paid": "Paid",
+      "pending": "Payment Pending",
+      "yourFeedback": "Your Feedback",
+      "noFeedback": "You haven't left feedback yet",
+      "joinSession": "Join Session",
+      "reschedule": "Reschedule",
+      "cancelAppointment": "Cancel Appointment"
+    },
     "cancel": {
       "title": "Cancel Appointment",
       "message": "Are you sure you want to cancel this appointment?",
+      "warning": "This action cannot be undone. Please review the cancellation policy before proceeding.",
       "reason": "Reason for cancellation",
       "reasonPlaceholder": "Please provide a reason...",
       "confirm": "Yes, Cancel",
-      "cancelled": "Appointment cancelled"
+      "cancelled": "Appointment cancelled",
+      "reasonTitle": "Why are you cancelling?",
+      "reasons": {
+        "scheduleConflict": "Schedule conflict",
+        "foundAnother": "Found another therapist",
+        "personalReasons": "Personal reasons",
+        "feelingBetter": "Feeling better",
+        "financial": "Financial reasons",
+        "other": "Other"
+      },
+      "additionalInfo": "Additional Information",
+      "additionalInfoPlaceholder": "Please share any additional details (optional)...",
+      "policyTitle": "Cancellation Policy",
+      "policyMore24": "More than 24 hours before: Full refund",
+      "policyLess24": "2-24 hours before: 50% refund",
+      "policyLess2": "Less than 2 hours before: No refund",
+      "policy": {
+        "fullRefund": "Cancelled more than 24 hours before the appointment",
+        "halfRefund": "Cancelled between 2-24 hours before the appointment",
+        "noRefund": "Cancelled less than 2 hours before the appointment"
+      },
+      "yourRefund": "Your Refund",
+      "willBeRefunded": "will be refunded",
+      "pleaseSelectReason": "Please select a reason for cancellation",
+      "keepAppointment": "Keep Appointment",
+      "confirmCancel": "Cancel Appointment",
+      "success": "Appointment Cancelled",
+      "successMessage": "Your appointment has been cancelled. {{refundAmount}} will be refunded to your original payment method within 5-7 business days."
+    },
+    "review": {
+      "title": "Leave Feedback",
+      "sessionOn": "Session on",
+      "howWasSession": "How was your session?",
+      "tapToRate": "Tap a star to rate your experience",
+      "rating": {
+        "terrible": "Terrible",
+        "poor": "Poor",
+        "okay": "Okay",
+        "good": "Good",
+        "excellent": "Excellent"
+      },
+      "whatDidYouLike": "What did you like?",
+      "selectAll": "Select all that apply",
+      "feedback": {
+        "professional": "Professional",
+        "empathetic": "Empathetic",
+        "helpful": "Helpful",
+        "goodListener": "Good Listener",
+        "knowledgeable": "Knowledgeable",
+        "punctual": "Punctual"
+      },
+      "additionalComments": "Additional Comments",
+      "optional": "Optional",
+      "commentsPlaceholder": "Share your thoughts about the session...",
+      "anonymous": "Post Anonymously",
+      "anonymousDescription": "Your name won't be shown publicly with this review",
+      "skip": "Skip",
+      "submit": "Submit Review",
+      "pleaseSelectRating": "Please select a rating",
+      "success": "Thank You!",
+      "successMessage": "Your feedback helps other patients find the right therapist."
     },
     "empty": {
       "upcoming": "No upcoming appointments",
