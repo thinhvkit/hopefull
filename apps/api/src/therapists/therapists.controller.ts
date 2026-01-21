@@ -6,10 +6,13 @@ import {
   UseGuards,
   Patch,
   Request,
+  Body,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { TherapistsService } from './therapists.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateStatusDto } from './dto/update-status.dto';
 
 @ApiTags('Therapists')
 @Controller('therapists')
@@ -48,6 +51,18 @@ export class TherapistsController {
     });
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current therapist profile' })
+  async getMyProfile(@Request() req: any) {
+    const therapist = await this.therapistsService.getProfileByUserId(req.user.id);
+    if (!therapist) {
+      throw new ForbiddenException('Therapist profile not found');
+    }
+    return therapist;
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get therapist by ID' })
   async findById(@Param('id') id: string) {
@@ -78,18 +93,23 @@ export class TherapistsController {
     );
   }
 
-  @Patch('status')
+  @Patch('me/status')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update online/offline status (therapist only)' })
   async updateStatus(
     @Request() req: any,
-    @Query('isOnline') isOnline: string,
+    @Body() updateStatusDto: UpdateStatusDto,
   ) {
-    // TODO: Verify user is a therapist
+    // Find the therapist profile for this user
+    const therapist = await this.therapistsService.findByUserId(req.user.id);
+    if (!therapist) {
+      throw new ForbiddenException('Only therapists can update their status');
+    }
+
     return this.therapistsService.updateOnlineStatus(
-      req.user.id,
-      isOnline === 'true',
+      therapist.id,
+      updateStatusDto.isOnline,
     );
   }
 }

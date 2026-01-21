@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TherapistVerificationStatus, Prisma } from '@prisma/client';
 
@@ -97,6 +97,40 @@ export class TherapistsService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async findByUserId(userId: string) {
+    return this.prisma.therapist.findUnique({
+      where: { userId },
+    });
+  }
+
+  async getProfileByUserId(userId: string) {
+    return this.prisma.therapist.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatarUrl: true,
+            bio: true,
+          },
+        },
+        languages: true,
+        specializations: {
+          include: { specialization: true },
+        },
+        licenses: {
+          where: { verified: true },
+        },
+        availabilities: {
+          where: { isActive: true },
+        },
+      },
+    });
   }
 
   async findById(id: string) {
@@ -235,6 +269,20 @@ export class TherapistsService {
     return this.prisma.therapist.update({
       where: { id: therapistId },
       data: { isOnline },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+          },
+        },
+        languages: true,
+        specializations: {
+          include: { specialization: true },
+        },
+      },
     });
   }
 

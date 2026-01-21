@@ -9,6 +9,8 @@ describe('TherapistsController', () => {
   const mockTherapistsService = {
     findAll: jest.fn(),
     findById: jest.fn(),
+    findByUserId: jest.fn(),
+    getProfileByUserId: jest.fn(),
     getAvailableSlots: jest.fn(),
     getReviews: jest.fn(),
     updateOnlineStatus: jest.fn(),
@@ -74,6 +76,28 @@ describe('TherapistsController', () => {
     });
   });
 
+  describe('getMyProfile', () => {
+    it('should return therapist profile for current user', async () => {
+      const mockRequest = { user: { id: 'user-id' } };
+      const expectedResult = { id: 'therapist-id', isOnline: true };
+      mockTherapistsService.getProfileByUserId.mockResolvedValue(expectedResult);
+
+      const result = await controller.getMyProfile(mockRequest);
+
+      expect(result).toEqual(expectedResult);
+      expect(therapistsService.getProfileByUserId).toHaveBeenCalledWith('user-id');
+    });
+
+    it('should throw ForbiddenException if therapist profile not found', async () => {
+      const mockRequest = { user: { id: 'user-id' } };
+      mockTherapistsService.getProfileByUserId.mockResolvedValue(null);
+
+      await expect(controller.getMyProfile(mockRequest)).rejects.toThrow(
+        'Therapist profile not found',
+      );
+    });
+  });
+
   describe('findById', () => {
     it('should return therapist by id', async () => {
       const expectedResult = { id: 'therapist-id', name: 'Dr. John' };
@@ -127,22 +151,35 @@ describe('TherapistsController', () => {
   describe('updateStatus', () => {
     it('should update online status to true', async () => {
       const mockRequest = { user: { id: 'user-id' } };
+      mockTherapistsService.findByUserId.mockResolvedValue({ id: 'therapist-id' });
       mockTherapistsService.updateOnlineStatus.mockResolvedValue({ isOnline: true });
 
-      const result = await controller.updateStatus(mockRequest, 'true');
+      const result = await controller.updateStatus(mockRequest, { isOnline: true });
 
       expect(result.isOnline).toBe(true);
-      expect(therapistsService.updateOnlineStatus).toHaveBeenCalledWith('user-id', true);
+      expect(therapistsService.findByUserId).toHaveBeenCalledWith('user-id');
+      expect(therapistsService.updateOnlineStatus).toHaveBeenCalledWith('therapist-id', true);
     });
 
     it('should update online status to false', async () => {
       const mockRequest = { user: { id: 'user-id' } };
+      mockTherapistsService.findByUserId.mockResolvedValue({ id: 'therapist-id' });
       mockTherapistsService.updateOnlineStatus.mockResolvedValue({ isOnline: false });
 
-      const result = await controller.updateStatus(mockRequest, 'false');
+      const result = await controller.updateStatus(mockRequest, { isOnline: false });
 
       expect(result.isOnline).toBe(false);
-      expect(therapistsService.updateOnlineStatus).toHaveBeenCalledWith('user-id', false);
+      expect(therapistsService.findByUserId).toHaveBeenCalledWith('user-id');
+      expect(therapistsService.updateOnlineStatus).toHaveBeenCalledWith('therapist-id', false);
+    });
+
+    it('should throw ForbiddenException if user is not a therapist', async () => {
+      const mockRequest = { user: { id: 'user-id' } };
+      mockTherapistsService.findByUserId.mockResolvedValue(null);
+
+      await expect(controller.updateStatus(mockRequest, { isOnline: true })).rejects.toThrow(
+        'Only therapists can update their status',
+      );
     });
   });
 });
