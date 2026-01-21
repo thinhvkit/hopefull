@@ -107,6 +107,19 @@ Key patterns:
 | `/api/v1/users/profile/avatar` | DELETE | Remove avatar image |
 | `/api/v1/users/:id` | GET | Get user by ID |
 
+#### Therapist Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/therapists` | GET | List all verified therapists (with filters) |
+| `/api/v1/therapists/me` | GET | Get current therapist profile (auth required) |
+| `/api/v1/therapists/instant-call/available` | GET | Get available therapists for instant call, sorted by match score (auth required) |
+| `/api/v1/therapists/:id` | GET | Get therapist by ID |
+| `/api/v1/therapists/:id/availability` | GET | Get available time slots for a date |
+| `/api/v1/therapists/:id/availability/summary` | GET | Get monthly availability summary for calendar view |
+| `/api/v1/therapists/:id/reviews` | GET | Get therapist reviews (paginated) |
+| `/api/v1/therapists/me/status` | PATCH | Update online/offline status (therapist only) |
+
 ### Mobile Structure (Expo Router)
 
 File-based routing with Expo Router:
@@ -116,7 +129,10 @@ File-based routing with Expo Router:
 - `app/auth/` - Login, register, OTP verification, forgot password, biometric setup flows
 - `app/(tabs)/` - Main app tabs (Home, Appointments, Therapists, Profile)
 - `app/profile/` - Profile editing, settings, security screens
-- `app/therapist/` - Therapist detail and booking screens
+- `app/therapist/` - Therapist detail (with About/Availability/Reviews tabs) and booking screens
+- `app/instant-call/` - Instant call search and outgoing call screens
+- `app/incoming-call.tsx` - Incoming call screen for therapists
+- `app/session/` - Video call session screen
 
 State management:
 - `src/store/auth.ts` - Zustand store for auth state, biometric settings, and onboarding
@@ -183,6 +199,50 @@ Key files:
 Limitations:
 - Max avatar size: 500KB after compression (Firestore document limit)
 - Supported formats: JPG, PNG, HEIC (converted to JPEG)
+
+#### Therapist Availability Calendar
+The therapist detail screen includes an "Availability" tab with a monthly calendar view:
+1. Calendar shows green dots for dates with available slots, gray for unavailable
+2. User selects a date to see available time slots
+3. Tapping a time slot navigates to booking with pre-filled date/time
+4. Month navigation with prev/next arrows (past months disabled)
+5. Timezone banner shows times in user's local timezone
+
+Key files:
+- `src/components/calendar/` - Calendar, CalendarDay, CalendarHeader components
+- `src/hooks/useTherapists.ts` - `useTherapistAvailabilitySummary` hook
+- `app/therapist/[id].tsx` - Availability tab integration
+
+#### Instant Call (Talk Now) Feature
+Allows users to instantly connect with available therapists without manual selection:
+
+**Flow:**
+1. User taps "Talk Now" on home screen → navigates to `/instant-call`
+2. App fetches available therapists sorted by match score
+3. Matching algorithm: Language match (100 pts) > Rating (0-50 pts) > Experience (0-10 pts)
+4. Automatically calls first therapist in ranked list
+5. If no response in 10 seconds (5s in dev), cancels and calls next therapist
+6. If therapist accepts → navigates to video session
+7. If therapist declines → immediately tries next
+8. If all therapists tried → shows "no therapists available"
+
+**UI States:**
+- `searching` - Animated search indicator while fetching therapists
+- `calling` - Shows therapist avatar, name, rating while calling
+- `connecting` - Success state before navigating to session
+- `no_therapists` - Empty state when all are busy
+- `error` - Error state with retry option
+
+Key files:
+- `app/instant-call/index.tsx` - Instant call search screen
+- `app/instant-call/[id].tsx` - Direct call to specific therapist
+- `src/services/call-signaling.ts` - Firebase Firestore call management
+- `src/services/therapists.ts` - `findAvailableForInstantCall()` method
+
+**Call Signaling (Firebase Firestore):**
+- Calls stored in `calls` collection with status: pending → ringing → accepted/declined/missed/cancelled → ended
+- Real-time listeners for call status changes
+- Channel name format: `ch-{userId8chars}-{therapistId8chars}-{timestamp36}`
 
 ### Admin Panel Structure
 
