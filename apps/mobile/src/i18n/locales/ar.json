@@ -504,5 +504,46 @@
     "emailSent": "تم إرسال بريد التأكيد",
     "confirmTitle": "تأكيد حجزك",
     "payNow": "ادفع"
+  },
+  "session": {
+    "connecting": "جاري الاتصال...",
+    "waitingForTherapist": "في انتظار انضمام المعالج الخاص بك...",
+    "ended": "انتهت الجلسة",
+    "endedMessage": "شكراً لك على جلستك. نأمل أن تكون مفيدة.",
+    "warning": "الجلسة على وشك الانتهاء",
+    "warningMessage": "ستنتهي جلستك خلال {{minutes}} دقيقة. يرجى إنهاء محادثتك.",
+    "endCall": "إنهاء المكالمة",
+    "endCallConfirm": "هل أنت متأكد من رغبتك في إنهاء هذه الجلسة؟",
+    "therapistVideoOff": "كاميرا المعالج مغلقة",
+    "videoOff": "الكاميرا مغلقة",
+    "reconnecting": "جاري إعادة الاتصال...",
+    "connectionLost": "فقد الاتصال. جاري محاولة إعادة الاتصال...",
+    "connectionFailed": "فشل الاتصال. يرجى التحقق من اتصال الإنترنت.",
+    "quality": {
+      "good": "جيد",
+      "fair": "متوسط",
+      "poor": "ضعيف",
+      "unknown": "غير معروف"
+    },
+    "incomingCall": "مكالمة واردة",
+    "autoDecline": "رفض تلقائي بعد {{seconds}} ثانية",
+    "videoCall": "مكالمة فيديو",
+    "accept": "قبول",
+    "decline": "رفض",
+    "slideToAnswer": "اسحب للرد",
+    "patientCall": "مكالمة فيديو مريض",
+    "controls": {
+      "mute": "كتم الصوت",
+      "unmute": "إلغاء كتم الصوت",
+      "cameraOn": "تشغيل الكاميرا",
+      "cameraOff": "إيقاف الكاميرا",
+      "flipCamera": "تبديل الكاميرا",
+      "speaker": "مكبر الصوت",
+      "earpiece": "سماعة الأذن"
+    },
+    "timer": {
+      "elapsed": "المنقضي",
+      "remaining": "المتبقي"
+    }
   }
 }

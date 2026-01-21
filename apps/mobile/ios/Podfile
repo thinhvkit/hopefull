@@ -13,7 +13,7 @@ install! 'cocoapods',
 
 prepare_react_native_project!
 
-# Required for Firebase with static frameworks
+# Enable modular headers for Firebase Swift pods
 use_modular_headers!
 
 target 'Hopefull' do

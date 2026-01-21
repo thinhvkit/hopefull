@@ -79,10 +79,14 @@ export interface Appointment {
   bookingNotes?: string;
   sessionNotes?: string;
   cancellationReason?: string;
+  sessionRoomId?: string;
+  sessionStartedAt?: string;
+  sessionEndedAt?: string;
   createdAt: string;
   therapist?: Therapist;
   user?: User;
   review?: Review;
+  payment?: Payment;
 }
 
 // Review types
@@ -199,3 +203,36 @@ export const REVIEW_TAGS = [
 ] as const;
 
 export type ReviewTag = typeof REVIEW_TAGS[number];
+
+// Therapist Dashboard types
+export interface TherapistStats {
+  todayAppointments: number;
+  weekEarnings: number;
+  pendingRequests: number;
+  averageRating: number;
+  totalSessions: number;
+  totalEarnings: number;
+}
+
+export interface TherapistSchedule {
+  id: string;
+  dayOfWeek: number; // 0-6 (Sunday-Saturday)
+  startTime: string; // HH:mm format
+  endTime: string;
+  isActive: boolean;
+}
+
+export interface TherapistAutoOffline {
+  enabled: boolean;
+  startTime: string; // HH:mm format
+  endTime: string;
+}
+
+export interface TherapistAppointmentFilters {
+  status?: 'upcoming' | 'past' | 'cancelled';
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  limit?: number;
+}

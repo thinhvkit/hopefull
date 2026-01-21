@@ -504,5 +504,46 @@
     "emailSent": "Email xác nhận đã được gửi",
     "confirmTitle": "Xác Nhận Đặt Lịch Của Bạn",
     "payNow": "Thanh Toán"
+  },
+  "session": {
+    "connecting": "Đang kết nối...",
+    "waitingForTherapist": "Đang chờ chuyên gia tâm lý tham gia...",
+    "ended": "Phiên Đã Kết Thúc",
+    "endedMessage": "Cảm ơn bạn đã tham gia phiên. Chúng tôi hy vọng nó hữu ích.",
+    "warning": "Phiên Sắp Kết Thúc",
+    "warningMessage": "Phiên của bạn sẽ kết thúc sau {{minutes}} phút. Vui lòng kết thúc cuộc trò chuyện.",
+    "endCall": "Kết Thúc Cuộc Gọi",
+    "endCallConfirm": "Bạn có chắc muốn kết thúc phiên này không?",
+    "therapistVideoOff": "Camera của chuyên gia đang tắt",
+    "videoOff": "Camera đang tắt",
+    "reconnecting": "Đang kết nối lại...",
+    "connectionLost": "Mất kết nối. Đang cố gắng kết nối lại...",
+    "connectionFailed": "Kết nối thất bại. Vui lòng kiểm tra kết nối internet của bạn.",
+    "quality": {
+      "good": "Tốt",
+      "fair": "Trung Bình",
+      "poor": "Kém",
+      "unknown": "Không Xác Định"
+    },
+    "incomingCall": "Cuộc Gọi Đến",
+    "autoDecline": "Tự động từ chối sau {{seconds}}s",
+    "videoCall": "Gọi Video",
+    "accept": "Chấp Nhận",
+    "decline": "Từ Chối",
+    "slideToAnswer": "Trượt để trả lời",
+    "patientCall": "Cuộc gọi video bệnh nhân",
+    "controls": {
+      "mute": "Tắt Tiếng",
+      "unmute": "Bật Tiếng",
+      "cameraOn": "Bật Camera",
+      "cameraOff": "Tắt Camera",
+      "flipCamera": "Đổi Camera",
+      "speaker": "Loa Ngoài",
+      "earpiece": "Loa Tai"
+    },
+    "timer": {
+      "elapsed": "Đã Trôi Qua",
+      "remaining": "Còn Lại"
+    }
   }
 }

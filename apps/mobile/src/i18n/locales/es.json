@@ -504,5 +504,46 @@
     "emailSent": "Se ha enviado un correo de confirmación",
     "confirmTitle": "Confirmar Tu Reserva",
     "payNow": "Pagar"
+  },
+  "session": {
+    "connecting": "Conectando...",
+    "waitingForTherapist": "Esperando a que tu terapeuta se una...",
+    "ended": "Sesión Terminada",
+    "endedMessage": "Gracias por tu sesión. Esperamos que haya sido útil.",
+    "warning": "Sesión Por Terminar",
+    "warningMessage": "Tu sesión terminará en {{minutes}} minuto(s). Por favor concluye tu conversación.",
+    "endCall": "Terminar Llamada",
+    "endCallConfirm": "¿Estás seguro de que quieres terminar esta sesión?",
+    "therapistVideoOff": "La cámara del terapeuta está apagada",
+    "videoOff": "Cámara apagada",
+    "reconnecting": "Reconectando...",
+    "connectionLost": "Conexión perdida. Intentando reconectar...",
+    "connectionFailed": "Conexión fallida. Por favor verifica tu conexión a internet.",
+    "quality": {
+      "good": "Buena",
+      "fair": "Regular",
+      "poor": "Mala",
+      "unknown": "Desconocida"
+    },
+    "incomingCall": "Llamada Entrante",
+    "autoDecline": "Rechazando automáticamente en {{seconds}}s",
+    "videoCall": "Videollamada",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "slideToAnswer": "Desliza para responder",
+    "patientCall": "Videollamada de paciente",
+    "controls": {
+      "mute": "Silenciar",
+      "unmute": "Activar Sonido",
+      "cameraOn": "Cámara Encendida",
+      "cameraOff": "Cámara Apagada",
+      "flipCamera": "Voltear Cámara",
+      "speaker": "Altavoz",
+      "earpiece": "Auricular"
+    },
+    "timer": {
+      "elapsed": "Transcurrido",
+      "remaining": "Restante"
+    }
   }
 }

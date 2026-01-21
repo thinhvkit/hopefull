@@ -7,6 +7,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { AgoraModule } from './agora/agora.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     TherapistsModule,
     AppointmentsModule,
     PaymentsModule,
+    AgoraModule,
   ],
 })
 export class AppModule {}

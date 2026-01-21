@@ -35,6 +35,14 @@ pnpm-debug.log*
 coverage
 .nyc_output
 
+# TypeScript build artifacts (generated in wrong location)
+*.d.ts.map
+# Keep *.d.ts for type declaration files that are intentional
+# but ignore ones in src directories
+apps/**/src/**/*.d.ts
+apps/**/app/**/*.d.ts
+packages/**/src/**/*.d.ts
+
 # Mobile
 *.jks
 *.p8

@@ -40,16 +40,3 @@ allprojects {
         maven { url 'https://www.jitpack.io' }
     }
 }
-
-gradle.projectsEvaluated {
-    subprojects { project ->
-        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-            compilerOptions {
-                freeCompilerArgs.addAll([
-                    "-P",
-                    "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.24"
-                ])
-            }
-        }
-    }
-}

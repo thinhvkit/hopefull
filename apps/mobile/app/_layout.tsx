@@ -21,7 +21,7 @@ const queryClient = new QueryClient({
 });
 
 function useProtectedRoute() {
-  const { isAuthenticated, isLoading, hasSeenOnboarding } = useAuthStore();
+  const { user, isAuthenticated, isLoading, hasSeenOnboarding } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
   const navigationState = useRootNavigationState();
@@ -32,12 +32,15 @@ function useProtectedRoute() {
 
     const inAuthGroup = segments[0] === 'auth';
     const inTabsGroup = segments[0] === '(tabs)';
+    const inTherapistTabsGroup = segments[0] === '(therapist-tabs)';
     const inOnboarding = segments[0] === 'onboarding';
     const isOnWelcome = segments.length === 0 || segments[0] === 'index';
+    const isTherapist = user?.role === 'THERAPIST';
 
     if (__DEV__) {
       console.log('=== useProtectedRoute ===');
       console.log('isAuthenticated:', isAuthenticated);
+      console.log('isTherapist:', isTherapist);
       console.log('segments:', segments);
       console.log('========================');
     }
@@ -50,20 +53,39 @@ function useProtectedRoute() {
 
     // Not authenticated and trying to access protected routes (tabs)
     // Note: Tabs layout handles its own redirect via <Redirect> component
-    if (!isAuthenticated && inTabsGroup) {
+    if (!isAuthenticated && (inTabsGroup || inTherapistTabsGroup)) {
       if (__DEV__) console.log('Not authenticated in tabs - tabs layout will redirect');
       return;
     }
 
-    // Authenticated and on auth/welcome screens - go to tabs
+    // Authenticated and on auth/welcome screens - go to appropriate tabs
     if (isAuthenticated && (inAuthGroup || isOnWelcome)) {
-      if (__DEV__) console.log('Redirect: welcome/auth -> tabs');
+      if (isTherapist) {
+        if (__DEV__) console.log('Redirect: welcome/auth -> therapist-tabs');
+        router.replace('/(therapist-tabs)');
+      } else {
+        if (__DEV__) console.log('Redirect: welcome/auth -> tabs');
+        router.replace('/(tabs)');
+      }
+      return;
+    }
+
+    // Therapist in user tabs - redirect to therapist tabs
+    if (isAuthenticated && isTherapist && inTabsGroup) {
+      if (__DEV__) console.log('Redirect: therapist in user tabs -> therapist-tabs');
+      router.replace('/(therapist-tabs)');
+      return;
+    }
+
+    // User in therapist tabs - redirect to user tabs
+    if (isAuthenticated && !isTherapist && inTherapistTabsGroup) {
+      if (__DEV__) console.log('Redirect: user in therapist tabs -> tabs');
       router.replace('/(tabs)');
       return;
     }
 
     hasRedirected.current = false;
-  }, [isAuthenticated, segments, isLoading, navigationState?.key, hasSeenOnboarding]);
+  }, [user, isAuthenticated, segments, isLoading, navigationState?.key, hasSeenOnboarding]);
 }
 
 export default function RootLayout() {
