@@ -4,6 +4,7 @@ import type {
   TherapistFilters,
   TherapistAvailability,
   AvailabilitySummary,
+  InstantCallTherapist,
   Review,
   PaginatedResponse,
 } from '../types';
@@ -36,6 +37,12 @@ export const therapistsService = {
 
   async getAvailabilitySummary(id: string, month: string): Promise<AvailabilitySummary> {
     const { data } = await api.get(`/therapists/${id}/availability/summary?month=${month}`);
+    return data;
+  },
+
+  async findAvailableForInstantCall(language?: string): Promise<InstantCallTherapist[]> {
+    const params = language ? `?language=${encodeURIComponent(language)}` : '';
+    const { data } = await api.get(`/therapists/instant-call/available${params}`);
     return data;
   },
 

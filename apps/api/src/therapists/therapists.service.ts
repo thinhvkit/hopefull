@@ -320,10 +320,89 @@ export class TherapistsService {
     };
   }
 
+  async findAvailableForInstantCall(userPreferredLanguage?: string) {
+    // Find all online, approved therapists
+    const therapists = await this.prisma.therapist.findMany({
+      where: {
+        verificationStatus: TherapistVerificationStatus.APPROVED,
+        isOnline: true,
+        user: { status: 'ACTIVE' },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            preferredLanguage: true,
+          },
+        },
+        languages: true,
+        specializations: {
+          include: { specialization: true },
+        },
+      },
+    });
+
+    if (therapists.length === 0) {
+      return [];
+    }
+
+    // Score and sort therapists based on:
+    // 1. Language match (highest priority - 100 points)
+    // 2. Average rating (50 points max)
+    // 3. Online availability/activity (lower ID = longer online, minor factor)
+    const scoredTherapists = therapists.map((therapist) => {
+      let score = 0;
+
+      // Language match: Check if therapist speaks user's preferred language
+      if (userPreferredLanguage) {
+        const languageMatch = therapist.languages.some(
+          (lang) => lang.language.toLowerCase() === userPreferredLanguage.toLowerCase()
+        );
+        if (languageMatch) {
+          score += 100; // Highest priority
+        }
+      }
+
+      // Rating score: normalized to 0-50 points
+      score += (therapist.averageRating / 5) * 50;
+
+      // Total bookings as a tiebreaker (experienced therapists)
+      score += Math.min(therapist.totalBookings / 10, 10); // Max 10 points
+
+      return {
+        therapist,
+        score,
+      };
+    });
+
+    // Sort by score descending
+    scoredTherapists.sort((a, b) => b.score - a.score);
+
+    // Return sorted therapist data
+    return scoredTherapists.map(({ therapist }) => ({
+      id: therapist.id,
+      userId: therapist.user.id,
+      firstName: therapist.user.firstName,
+      lastName: therapist.user.lastName,
+      avatarUrl: therapist.user.avatarUrl,
+      professionalTitle: therapist.professionalTitle,
+      averageRating: therapist.averageRating,
+      totalReviews: therapist.totalReviews,
+      hourlyRate: therapist.hourlyRate,
+      perMinuteRate: therapist.perMinuteRate,
+      languages: therapist.languages.map((l) => l.language),
+      specializations: therapist.specializations.map((s) => s.specialization.name),
+    }));
+  }
+
   async getAvailabilitySummary(therapistId: string, month: string) {
     const therapist = await this.prisma.therapist.findUnique({
       where: { id: therapistId },
       include: {
+        user: { select: { timezone: true } },
         availabilities: { where: { isActive: true } },
         blockedSlots: true,
       },
@@ -430,7 +509,7 @@ export class TherapistsService {
 
     return {
       month,
-      therapistTimezone: therapist.timezone,
+      therapistTimezone: therapist.user.timezone,
       dates,
     };
   }

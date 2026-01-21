@@ -551,5 +551,22 @@
       "elapsed": "المنقضي",
       "remaining": "المتبقي"
     }
+  },
+  "instantCall": {
+    "calling": "جاري الاتصال...",
+    "ringing": "الهاتف يرن...",
+    "connecting": "جاري الاتصال...",
+    "connectingSubtitle": "جاري تجهيز جلسة الفيديو",
+    "noAnswer": "لا إجابة",
+    "videoCall": "مكالمة فيديو",
+    "retry": "أعد المحاولة",
+    "tapToCancel": "اضغط للإلغاء",
+    "searching": "جاري البحث عن معالج...",
+    "searchingSubtitle": "نبحث عن أفضل معالج متاح لك",
+    "waitingForResponse": "في انتظار الرد...",
+    "noTherapists": "لا يوجد معالجون متاحون",
+    "noTherapistsSubtitle": "جميع المعالجين مشغولون حالياً. يرجى المحاولة لاحقاً.",
+    "errorSearching": "تعذر البحث عن المعالجين",
+    "minDuration": "مدة الجلسة الأدنى: {{minutes}} دقيقة"
   }
 }

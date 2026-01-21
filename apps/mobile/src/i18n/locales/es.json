@@ -551,5 +551,22 @@
       "elapsed": "Transcurrido",
       "remaining": "Restante"
     }
+  },
+  "instantCall": {
+    "calling": "Llamando...",
+    "ringing": "Sonando...",
+    "connecting": "Conectando...",
+    "connectingSubtitle": "Preparando tu sesión de video",
+    "noAnswer": "Sin respuesta",
+    "videoCall": "Videollamada",
+    "retry": "Reintentar",
+    "tapToCancel": "Toca para cancelar",
+    "searching": "Buscando terapeuta...",
+    "searchingSubtitle": "Encontrando el mejor terapeuta disponible para ti",
+    "waitingForResponse": "Esperando respuesta...",
+    "noTherapists": "No hay terapeutas disponibles",
+    "noTherapistsSubtitle": "Todos los terapeutas están ocupados. Por favor, intenta más tarde.",
+    "errorSearching": "No se pudo buscar terapeutas",
+    "minDuration": "Duración mínima de sesión: {{minutes}} minutos"
   }
 }

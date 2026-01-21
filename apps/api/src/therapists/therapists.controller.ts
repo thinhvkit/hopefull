@@ -63,6 +63,20 @@ export class TherapistsController {
     return therapist;
   }
 
+  @Get('instant-call/available')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get available therapists for instant call, sorted by match score' })
+  @ApiQuery({ name: 'language', required: false, description: 'Preferred language for matching' })
+  async findAvailableForInstantCall(
+    @Request() req: any,
+    @Query('language') language?: string,
+  ) {
+    // Use user's preferred language if not specified
+    const preferredLanguage = language || req.user?.preferredLanguage;
+    return this.therapistsService.findAvailableForInstantCall(preferredLanguage);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get therapist by ID' })
   async findById(@Param('id') id: string) {

@@ -65,6 +65,22 @@ export interface TimeSlot {
   endTime: string;
 }
 
+// Instant call available therapist
+export interface InstantCallTherapist {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+  professionalTitle: string;
+  averageRating: number;
+  totalReviews: number;
+  hourlyRate: number;
+  perMinuteRate: number;
+  languages: string[];
+  specializations: string[];
+}
+
 // Availability summary for calendar view
 export interface AvailabilitySummary {
   month: string;

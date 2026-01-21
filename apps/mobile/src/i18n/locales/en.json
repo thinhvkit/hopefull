@@ -557,10 +557,18 @@
     "calling": "Calling...",
     "ringing": "Ringing...",
     "connecting": "Connecting...",
+    "connectingSubtitle": "Preparing your video session",
     "noAnswer": "No Answer",
     "videoCall": "Video Call",
     "retry": "Try Again",
-    "tapToCancel": "Tap to cancel"
+    "tapToCancel": "Tap to cancel",
+    "searching": "Searching for therapist...",
+    "searchingSubtitle": "Finding the best available therapist for you",
+    "waitingForResponse": "Waiting for response...",
+    "noTherapists": "No therapists available",
+    "noTherapistsSubtitle": "All therapists are currently busy. Please try again later.",
+    "errorSearching": "Unable to search for therapists",
+    "minDuration": "Minimum session duration: {{minutes}} minutes"
   },
   "therapistDashboard": {
     "home": "Home",

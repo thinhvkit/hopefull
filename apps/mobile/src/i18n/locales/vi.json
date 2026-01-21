@@ -551,5 +551,22 @@
       "elapsed": "Đã Trôi Qua",
       "remaining": "Còn Lại"
     }
+  },
+  "instantCall": {
+    "calling": "Đang gọi...",
+    "ringing": "Đang đổ chuông...",
+    "connecting": "Đang kết nối...",
+    "connectingSubtitle": "Đang chuẩn bị phiên video của bạn",
+    "noAnswer": "Không trả lời",
+    "videoCall": "Gọi Video",
+    "retry": "Thử lại",
+    "tapToCancel": "Chạm để hủy",
+    "searching": "Đang tìm chuyên gia...",
+    "searchingSubtitle": "Đang tìm chuyên gia phù hợp nhất cho bạn",
+    "waitingForResponse": "Đang chờ phản hồi...",
+    "noTherapists": "Không có chuyên gia nào",
+    "noTherapistsSubtitle": "Tất cả các chuyên gia hiện đang bận. Vui lòng thử lại sau.",
+    "errorSearching": "Không thể tìm kiếm chuyên gia",
+    "minDuration": "Thời lượng tối thiểu: {{minutes}} phút"
   }
 }
