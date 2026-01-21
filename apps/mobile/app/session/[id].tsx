@@ -23,6 +23,16 @@ import { useAuthStore } from '@/store/auth';
 import { videoSessionService } from '@/services/video-session';
 import { generateAgoraToken } from '@/services/agora';
 
+// Safe navigation helper - navigates to home instead of back when there's no history
+const navigateToHome = (router: any, isTherapist: boolean) => {
+  if (router.canGoBack()) {
+    router.back();
+  } else {
+    // Navigate to appropriate home screen
+    router.replace(isTherapist ? '/(therapist-tabs)' : '/(tabs)');
+  }
+};
+
 const AGORA_APP_ID = process.env.EXPO_PUBLIC_AGORA_APP_ID || '';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -71,8 +81,9 @@ export default function VideoSessionScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  // Get current user
+  // Get current user and role
   const currentUser = useAuthStore((state) => state.user);
+  const isTherapist = currentUser?.role === 'THERAPIST';
 
   // Check if this is an instant call (channel name starts with "ch-" or "session-call-" for backwards compatibility)
   const isInstantCall = id?.startsWith('ch-') || id?.startsWith('session-call-');
@@ -184,7 +195,7 @@ export default function VideoSessionScreen() {
         callUnsubscribe.current();
         callUnsubscribe.current = null;
       }
-      router.back();
+      navigateToHome(router, isTherapist);
     }
   }, [router, isCaller, currentUser]);
 
@@ -304,7 +315,7 @@ export default function VideoSessionScreen() {
           onCallEnded: () => {
             console.log('[Session] Call ended by Agora');
             if (isMountedRef.current) {
-              router.back();
+              navigateToHome(router, isTherapist);
             }
           },
           onError: (error) => {
@@ -459,7 +470,7 @@ export default function VideoSessionScreen() {
       }
     }
 
-    router.back();
+    navigateToHome(router, isTherapist);
   }, [router, callId]);
 
   const onEndCallPress = useCallback(() => {
