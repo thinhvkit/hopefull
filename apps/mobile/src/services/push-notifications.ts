@@ -5,15 +5,39 @@ import { Platform } from 'react-native';
 import { router, Href } from 'expo-router';
 import { notificationsService } from './notifications';
 
+// Track active chat to suppress notifications
+let activeChatAppointmentId: string | null = null;
+
+export function setActiveChatAppointmentId(id: string | null) {
+  activeChatAppointmentId = id;
+}
+
+// Store last received notification data for tap handling
+let lastNotificationData: PushNotificationData | null = null;
+
 // Configure notification behavior
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
+  handleNotification: async (notification) => {
+    const data = notification.request.content.data as PushNotificationData & { appointmentId?: string };
+    lastNotificationData = data;
+    // Suppress notification if user is already on this chat screen
+    if (data?.screen === 'chat' && data?.appointmentId && data.appointmentId === activeChatAppointmentId) {
+      return {
+        shouldShowAlert: false,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+        shouldShowBanner: false,
+        shouldShowList: false,
+      };
+    }
+    return {
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    };
+  },
 });
 
 export interface PushNotificationData {
@@ -190,10 +214,30 @@ class PushNotificationService {
 
     // Handle notification interactions (when user taps notification)
     this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log('[PushNotifications] Notification tapped:', response);
-      const data = response.notification.request.content.data as PushNotificationData;
+      let data = this.extractNotificationData(response.notification);
+      // Fallback: if tap data is missing screen, use last received notification data
+      if (!data.screen && lastNotificationData?.screen) {
+        data = lastNotificationData;
+      }
+      lastNotificationData = null;
       this.handleNotificationNavigation(data);
     });
+
+    // Handle cold-start: notification tapped before listener was set up
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) {
+        console.log('[PushNotifications] Cold-start notification:', JSON.stringify(response.notification.request.content.data));
+        const data = this.extractNotificationData(response.notification);
+        this.handleNotificationNavigation(data);
+      }
+    });
+  }
+
+  private extractNotificationData(notification: Notifications.Notification): PushNotificationData {
+    const raw = notification.request.content.data ?? {};
+    // On Android, FCM data may be nested under a 'data' key or at top level
+    const data = (raw.data && typeof raw.data === 'object' ? { ...raw, ...raw.data } : raw) as PushNotificationData;
+    return data;
   }
 
   handleNotificationNavigation(data: PushNotificationData): void {
@@ -208,8 +252,9 @@ class PushNotificationService {
         }
         break;
       case 'chat':
-        if (therapistId) {
-          // Chat route may not exist, navigate to therapist profile instead
+        if (appointmentId) {
+          router.push(`/chat/${appointmentId}` as Href);
+        } else if (therapistId) {
           router.push(`/therapist/${therapistId}` as Href);
         }
         break;

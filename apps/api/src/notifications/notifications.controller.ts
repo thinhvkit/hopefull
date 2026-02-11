@@ -22,6 +22,7 @@ import {
   PaginationQueryDto,
   RegisterDeviceTokenDto,
   RemoveDeviceTokenDto,
+  SendChatMessageDto,
 } from './dto';
 
 @ApiTags('notifications')
@@ -92,6 +93,18 @@ export class NotificationsController {
   @ApiResponse({ status: 200, description: 'Device token removed' })
   async removeDeviceToken(@Body() dto: RemoveDeviceTokenDto) {
     await this.notificationsService.removeDeviceToken(dto.token);
+    return { success: true };
+  }
+
+  @Post('chat-message')
+  @ApiOperation({ summary: 'Send push notification for a new chat message' })
+  @ApiResponse({ status: 201, description: 'Chat message notification sent' })
+  async sendChatMessage(@Request() req: any, @Body() dto: SendChatMessageDto) {
+    await this.notificationsService.sendChatMessage(
+      dto.recipientId,
+      dto.senderName,
+      dto.appointmentId,
+    );
     return { success: true };
   }
 

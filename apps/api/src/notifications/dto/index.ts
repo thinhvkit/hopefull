@@ -34,3 +34,17 @@ export class RemoveDeviceTokenDto {
   @IsString()
   token: string;
 }
+
+export class SendChatMessageDto {
+  @ApiProperty({ description: 'Recipient user ID' })
+  @IsString()
+  recipientId: string;
+
+  @ApiProperty({ description: 'Sender display name' })
+  @IsString()
+  senderName: string;
+
+  @ApiProperty({ description: 'Appointment ID for the chat' })
+  @IsString()
+  appointmentId: string;
+}

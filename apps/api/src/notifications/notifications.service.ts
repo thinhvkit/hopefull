@@ -249,6 +249,20 @@ export class NotificationsService {
     });
   }
 
+  // Chat message - push only, no DB record
+  async sendChatMessage(recipientId: string, senderName: string, appointmentId: string) {
+    await this.sendPushNotification({
+      userId: recipientId,
+      title: 'New Message',
+      body: `${senderName} sent you a message.`,
+      data: {
+        type: 'THERAPIST_MESSAGE',
+        screen: 'chat',
+        appointmentId,
+      },
+    });
+  }
+
   // Booking Request - notify therapist of new booking request
   async sendBookingRequest(therapistUserId: string, appointmentId: string, patientName: string, dateTime: string) {
     return this.create({

@@ -13,6 +13,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ChatScreen, useChatContext, setConversation } from 'rn-firebase-chat';
 import { useAppointment } from '@/hooks/useAppointments';
 import { useAuthStore } from '@/store/auth';
+import { notificationsService } from '@/services/notifications';
+import { setActiveChatAppointmentId } from '@/services/push-notifications';
 
 export default function AppointmentChatScreen() {
   const { appointmentId } = useLocalSearchParams<{ appointmentId: string }>();
@@ -98,9 +100,22 @@ export default function AppointmentChatScreen() {
     }
   }, []);
 
+  // Track active chat screen for notification suppression
+  useEffect(() => {
+    if (appointmentId) {
+      setActiveChatAppointmentId(appointmentId);
+    }
+    return () => setActiveChatAppointmentId(null);
+  }, [appointmentId]);
+
   const onSendNotification = useCallback(() => {
-    if (__DEV__) console.log('[Chat] sendMessageNotification - message sent successfully');
-  }, []);
+    if (!partner || !appointmentId || !user) return;
+    notificationsService
+      .sendChatMessageNotification(partner.id, user.firstName || 'Someone', appointmentId)
+      .catch((err) => {
+        if (__DEV__) console.warn('[Chat] Failed to send notification:', err);
+      });
+  }, [partner, appointmentId, user]);
 
   if (isLoading) {
     return (

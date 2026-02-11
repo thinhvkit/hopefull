@@ -34,6 +34,10 @@ export const notificationsService = {
     await api.delete('/notifications/device-token', { data: { token } });
   },
 
+  async sendChatMessageNotification(recipientId: string, senderName: string, appointmentId: string): Promise<void> {
+    await api.post('/notifications/chat-message', { recipientId, senderName, appointmentId });
+  },
+
   async testBookingConfirmation(): Promise<void> {
     await api.post('/notifications/test/booking-confirmation');
   },
