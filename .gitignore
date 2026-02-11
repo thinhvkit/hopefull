@@ -60,3 +60,4 @@ web-build
 # Database
 *.db
 *.sqlite
+*.zip
