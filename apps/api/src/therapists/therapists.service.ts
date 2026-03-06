@@ -852,4 +852,64 @@ export class TherapistsService {
       });
     }
   }
+
+  // ─── Admin methods ─────────────────────────────────────────────────
+
+  async updateVerification(therapistId: string, status: 'APPROVED' | 'REJECTED', reason?: string) {
+    const therapist = await this.prisma.therapist.findUnique({
+      where: { id: therapistId },
+      include: { user: { select: { id: true } } },
+    });
+    if (!therapist) throw new NotFoundException('Therapist not found');
+
+    const updated = await this.prisma.therapist.update({
+      where: { id: therapistId },
+      data: {
+        verificationStatus: status as TherapistVerificationStatus,
+        rejectionReason: status === 'REJECTED' ? reason : null,
+        verifiedAt: status === 'APPROVED' ? new Date() : null,
+      },
+    });
+
+    const title = status === 'APPROVED' ? 'Account Verified' : 'Verification Update';
+    const message = status === 'APPROVED'
+      ? 'Your therapist account has been approved. You can now receive bookings.'
+      : `Your verification was not approved. ${reason || ''}`;
+    await this.notificationsService.sendSystemNotification(therapist.user.id, title, message);
+
+    return updated;
+  }
+
+  // ─── Specializations ───────────────────────────────────────────────
+
+  async getSpecializations() {
+    return this.prisma.specialization.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+      include: { _count: { select: { therapists: true } } },
+    });
+  }
+
+  async createSpecialization(data: { name: string; description?: string; icon?: string }) {
+    return this.prisma.specialization.create({ data });
+  }
+
+  async updateSpecialization(id: string, data: { name?: string; description?: string; icon?: string; isActive?: boolean }) {
+    const existing = await this.prisma.specialization.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Specialization not found');
+    return this.prisma.specialization.update({ where: { id }, data });
+  }
+
+  async deleteSpecialization(id: string) {
+    const existing = await this.prisma.specialization.findUnique({
+      where: { id },
+      include: { _count: { select: { therapists: true } } },
+    });
+    if (!existing) throw new NotFoundException('Specialization not found');
+    if (existing._count.therapists > 0) {
+      throw new BadRequestException(`Cannot delete: ${existing._count.therapists} therapists are assigned to this specialization`);
+    }
+    await this.prisma.specialization.delete({ where: { id } });
+    return { message: 'Specialization deleted' };
+  }
 }

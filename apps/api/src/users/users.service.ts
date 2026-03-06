@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FirebaseService } from '../firebase/firebase.service';
+import { UserStatus, UserRole } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -110,6 +111,55 @@ export class UsersService {
       console.error('Avatar upload failed:', error.message);
       throw new BadRequestException(error.message || 'Failed to upload avatar');
     }
+  }
+
+  async findAll(options: { page?: number; limit?: number; search?: string; status?: string; role?: string }) {
+    const { page = 1, limit = 20, search, status, role } = options;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    if (status) where.status = status;
+    if (role) where.role = role;
+
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, email: true, phone: true, role: true, status: true,
+          firstName: true, lastName: true, avatarUrl: true,
+          emailVerified: true, phoneVerified: true,
+          createdAt: true, lastLoginAt: true,
+          _count: { select: { appointments: true } },
+        },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  async updateStatus(id: string, status: UserStatus) {
+    const user = await this.prisma.user.findUnique({ where: { id }, select: { role: true } });
+    if (!user) throw new NotFoundException('User not found');
+    if (user.role === UserRole.ADMIN) throw new ForbiddenException('Cannot modify admin status');
+    return this.prisma.user.update({ where: { id }, data: { status } });
+  }
+
+  async deleteUser(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id }, select: { role: true } });
+    if (!user) throw new NotFoundException('User not found');
+    if (user.role === UserRole.ADMIN) throw new ForbiddenException('Cannot delete admin users');
+    return this.prisma.user.delete({ where: { id } });
   }
 
   async removeAvatar(userId: string): Promise<void> {

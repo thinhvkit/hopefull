@@ -206,6 +206,47 @@ export class PaymentsService {
     };
   }
 
+  async findAllPayments(options: { page?: number; limit?: number; status?: string; dateFrom?: string; dateTo?: string }) {
+    const { page = 1, limit = 20, status, dateFrom, dateTo } = options;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (status) where.status = status;
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) where.createdAt.gte = new Date(dateFrom);
+      if (dateTo) where.createdAt.lte = new Date(dateTo);
+    }
+
+    const [data, total, summary] = await Promise.all([
+      this.prisma.payment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          appointment: { include: { therapist: { include: { user: { select: { firstName: true, lastName: true } } } } } },
+        },
+      }),
+      this.prisma.payment.count({ where }),
+      this.prisma.payment.aggregate({
+        where: { ...where, status: 'SUCCESS' },
+        _sum: { amount: true, platformFee: true, therapistAmount: true },
+      }),
+    ]);
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      summary: {
+        totalRevenue: summary._sum.amount || 0,
+        totalPlatformFee: summary._sum.platformFee || 0,
+        totalTherapistPayout: summary._sum.therapistAmount || 0,
+      },
+    };
+  }
+
   async createPayment(data: {
     userId: string;
     appointmentId: string;

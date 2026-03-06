@@ -9,10 +9,13 @@ import {
   Query,
   UseGuards,
   Request,
+  SetMetadata,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard, ROLES_KEY } from '../auth/guards/roles.guard';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -81,5 +84,25 @@ export class PaymentsController {
       page ? parseInt(page) : undefined,
       limit ? parseInt(limit) : undefined,
     );
+  }
+
+  @Get('all')
+  @UseGuards(RolesGuard)
+  @SetMetadata(ROLES_KEY, [UserRole.ADMIN])
+  @ApiOperation({ summary: 'List all payments (admin only)' })
+  async findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.paymentsService.findAllPayments({
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+      status,
+      dateFrom,
+      dateTo,
+    });
   }
 }

@@ -1,17 +1,22 @@
 import {
   Controller,
   Get,
+  Post,
   Param,
   Query,
   UseGuards,
   Patch,
+  Delete,
   Request,
   Body,
   ForbiddenException,
+  SetMetadata,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { TherapistsService } from './therapists.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard, ROLES_KEY } from '../auth/guards/roles.guard';
+import { UserRole } from '@prisma/client';
 import { UpdateStatusDto } from './dto/update-status.dto';
 
 @ApiTags('Therapists')
@@ -204,5 +209,57 @@ export class TherapistsController {
     @Body() body: { reason?: string },
   ) {
     return this.therapistsService.declineAppointment(req.user.id, appointmentId, body.reason);
+  }
+
+  // ─── Admin endpoints ───────────────────────────────────────────────
+
+  @Patch(':id/verification')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @SetMetadata(ROLES_KEY, [UserRole.ADMIN])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update therapist verification status (admin only)' })
+  async updateVerification(
+    @Param('id') id: string,
+    @Body() body: { status: 'APPROVED' | 'REJECTED'; reason?: string },
+  ) {
+    return this.therapistsService.updateVerification(id, body.status, body.reason);
+  }
+
+  // ─── Specializations (categories) ─────────────────────────────────
+
+  @Get('specializations')
+  @ApiOperation({ summary: 'List all specializations' })
+  async getSpecializations() {
+    return this.therapistsService.getSpecializations();
+  }
+
+  @Post('specializations')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @SetMetadata(ROLES_KEY, [UserRole.ADMIN])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create specialization (admin only)' })
+  async createSpecialization(@Body() body: { name: string; description?: string; icon?: string }) {
+    return this.therapistsService.createSpecialization(body);
+  }
+
+  @Patch('specializations/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @SetMetadata(ROLES_KEY, [UserRole.ADMIN])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update specialization (admin only)' })
+  async updateSpecialization(
+    @Param('id') id: string,
+    @Body() body: { name?: string; description?: string; icon?: string; isActive?: boolean },
+  ) {
+    return this.therapistsService.updateSpecialization(id, body);
+  }
+
+  @Delete('specializations/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @SetMetadata(ROLES_KEY, [UserRole.ADMIN])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete specialization (admin only)' })
+  async deleteSpecialization(@Param('id') id: string) {
+    return this.therapistsService.deleteSpecialization(id);
   }
 }

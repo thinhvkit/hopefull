@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { AgoraModule } from './agora/agora.module';
 import { RemindersModule } from './reminders/reminders.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { RemindersModule } from './reminders/reminders.module';
     NotificationsModule,
     AgoraModule,
     RemindersModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

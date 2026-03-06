@@ -120,6 +120,72 @@ export class AppointmentsService {
     }
   }
 
+  async findAll(options: { page?: number; limit?: number; search?: string; status?: string; dateFrom?: string; dateTo?: string }) {
+    const { page = 1, limit = 20, search, status, dateFrom, dateTo } = options;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.AppointmentWhereInput = {};
+    if (status) where.status = status as AppointmentStatus;
+    if (dateFrom || dateTo) {
+      where.scheduledAt = {};
+      if (dateFrom) (where.scheduledAt as any).gte = new Date(dateFrom);
+      if (dateTo) (where.scheduledAt as any).lte = new Date(dateTo);
+    }
+    if (search) {
+      where.OR = [
+        { user: { firstName: { contains: search, mode: 'insensitive' } } },
+        { user: { lastName: { contains: search, mode: 'insensitive' } } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+        { therapist: { user: { firstName: { contains: search, mode: 'insensitive' } } } },
+        { therapist: { user: { lastName: { contains: search, mode: 'insensitive' } } } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.appointment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { scheduledAt: 'desc' },
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
+          therapist: { include: { user: { select: { firstName: true, lastName: true } } } },
+          payment: { select: { amount: true, status: true } },
+        },
+      }),
+      this.prisma.appointment.count({ where }),
+    ]);
+
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  async adminCancel(id: string, reason: string) {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id },
+      include: {
+        user: { select: { id: true } },
+        therapist: { include: { user: { select: { id: true } } } },
+      },
+    });
+    if (!appointment) throw new NotFoundException('Appointment not found');
+    if (appointment.status === AppointmentStatus.COMPLETED || appointment.status === AppointmentStatus.CANCELLED) {
+      throw new BadRequestException('Appointment cannot be cancelled');
+    }
+
+    const updated = await this.prisma.appointment.update({
+      where: { id },
+      data: { status: AppointmentStatus.CANCELLED, cancellationReason: reason, cancelledAt: new Date() },
+    });
+
+    const dateTime = this.formatDateTime(appointment.scheduledAt, appointment.timezone);
+    await Promise.all([
+      this.notificationsService.sendAppointmentCancelled(appointment.user.id, id, 'Admin', dateTime, reason),
+      this.notificationsService.sendAppointmentCancelled(appointment.therapist.user.id, id, 'Admin', dateTime, reason),
+    ]);
+
+    return updated;
+  }
+
   async findByUser(userId: string, status?: 'upcoming' | 'past') {
     const where: Prisma.AppointmentWhereInput = { userId };
 

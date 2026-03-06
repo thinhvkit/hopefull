@@ -8,10 +8,13 @@ import {
   Query,
   UseGuards,
   Request,
+  SetMetadata,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AppointmentsService } from './appointments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard, ROLES_KEY } from '../auth/guards/roles.guard';
+import { UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -135,6 +138,38 @@ export class AppointmentsController {
       },
     });
     return { ok: true, firesIn: '~10 seconds', reminderType: type };
+  }
+
+  // ─── Admin endpoints ───────────────────────────────────────────────
+
+  @Get('all')
+  @UseGuards(RolesGuard)
+  @SetMetadata(ROLES_KEY, [UserRole.ADMIN])
+  @ApiOperation({ summary: 'List all appointments (admin only)' })
+  async findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.appointmentsService.findAll({
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+      search,
+      status,
+      dateFrom,
+      dateTo,
+    });
+  }
+
+  @Patch(':id/admin-cancel')
+  @UseGuards(RolesGuard)
+  @SetMetadata(ROLES_KEY, [UserRole.ADMIN])
+  @ApiOperation({ summary: 'Cancel any appointment (admin only)' })
+  async adminCancel(@Param('id') id: string, @Body() body: { reason: string }) {
+    return this.appointmentsService.adminCancel(id, body.reason);
   }
 
   @Post(':id/review')
