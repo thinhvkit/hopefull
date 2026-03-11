@@ -45,20 +45,45 @@ export default function NotificationsScreen() {
         markAsRead.mutate(notification.id);
       }
 
-      // Navigate based on notification data
-      const screenRoute = notification.data?.screen as string;
-      if (screenRoute) {
-        switch (screenRoute) {
+      // Navigate based on notification data (screen field) or type
+      const notifData = notification.data as Record<string, any> | undefined;
+      const screenRoute = notifData?.screen as string | undefined;
+      const notifType = notification.type;
+
+      // Determine route: use screen if available, otherwise derive from type
+      let route = screenRoute;
+      if (!route) {
+        switch (notifType) {
+          case 'THERAPIST_MESSAGE':
+            route = 'chat';
+            break;
+          case 'BOOKING_CONFIRMATION':
+          case 'APPOINTMENT_REMINDER':
+            route = 'appointment-details';
+            break;
+          case 'PAYMENT_RECEIPT':
+            route = 'payment-details';
+            break;
+        }
+      }
+
+      if (route) {
+        switch (route) {
           case 'appointment-details':
-            router.push(`/appointment/${notification.data?.appointmentId}` as Href);
+          case 'join-session':
+            if (notifData?.appointmentId) {
+              router.push(`/appointment/${notifData.appointmentId}` as Href);
+            }
             break;
           case 'chat':
-            // Chat route may not exist yet, navigate to therapist instead
-            router.push(`/therapist/${notification.data?.therapistId}` as Href);
+            if (notifData?.appointmentId) {
+              router.push(`/chat/${notifData.appointmentId}` as Href);
+            } else if (notifData?.therapistId) {
+              router.push(`/therapist/${notifData.therapistId}` as Href);
+            }
             break;
           case 'payment-details':
-            // Navigate to appointments as payment details screen may not exist
-            router.push('/appointments' as Href);
+            router.push('/(tabs)/appointments' as Href);
             break;
           default:
             break;

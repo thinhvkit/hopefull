@@ -55,19 +55,7 @@
       "expo-local-authentication",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#4F46E5"
-        }
-      ],
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow STS Healthcare to access your camera for video calls"
-        }
-      ],
+      "@react-native-firebase/messaging",
       [
         "expo-image-picker",
         {

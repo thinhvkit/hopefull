@@ -43,10 +43,6 @@ export default function HomeScreen() {
     refetchAppointments();
   };
 
-  if (isTherapist) {
-    return <TherapistDashboard />;
-  }
-
   const renderTherapistCard = (therapist: Therapist) => (
     <TouchableOpacity
       key={therapist.id}

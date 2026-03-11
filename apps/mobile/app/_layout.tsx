@@ -6,11 +6,49 @@ import * as SplashScreen from 'expo-splash-screen';
 import { I18nextProvider } from 'react-i18next';
 import { ChatProvider } from 'rn-firebase-chat';
 import { StripeProvider } from '@stripe/stripe-react-native';
+import messaging from '@react-native-firebase/messaging';
+import notifee, { EventType } from '@notifee/react-native';
 import { useAuthStore } from '@/store/auth';
 import { useLocaleStore } from '@/store/locale';
 import { configureGoogleSignIn } from '@/services/social-auth';
 import { pushNotificationService } from '@/services';
 import i18n from '@/i18n';
+
+// Register Firebase background message handler (must be top-level, outside component)
+messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+  console.log('[PushNotifications] Background message:', remoteMessage.messageId);
+});
+
+// Foreground message handler — display notification via notifee
+messaging().onMessage(async (remoteMessage) => {
+  console.log('[PushNotifications] Foreground message:', remoteMessage.messageId);
+  pushNotificationService.handleForegroundMessage(remoteMessage);
+});
+
+// Notification tap from foreground (notifee-displayed notifications)
+notifee.onForegroundEvent(({ type, detail }) => {
+  if (type === EventType.PRESS && detail.notification) {
+    const data = (detail.notification.data || {}) as Record<string, string>;
+    console.log('[PushNotifications] Foreground notification tapped:', data);
+    pushNotificationService.handleNotificationNavigation(data);
+  }
+});
+
+// Notification tap from background/killed state (notifee)
+notifee.onBackgroundEvent(async ({ type, detail }) => {
+  if (type === EventType.PRESS && detail.notification) {
+    const data = (detail.notification.data || {}) as Record<string, string>;
+    console.log('[PushNotifications] Background notification tapped:', data);
+    pushNotificationService.handleNotificationNavigation(data);
+  }
+});
+
+// Notification tap that opened app from background (Firebase — for system-displayed notifications)
+messaging().onNotificationOpenedApp((remoteMessage) => {
+  console.log('[PushNotifications] Firebase notification opened app:', remoteMessage.data);
+  const data = (remoteMessage.data || {}) as Record<string, string>;
+  pushNotificationService.handleNotificationNavigation(data);
+});
 
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
 

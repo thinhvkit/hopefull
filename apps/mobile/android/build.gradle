@@ -31,6 +31,14 @@ allprojects {
     google()
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
+    maven {
+      // Notifee local maven repository — resolve through node to handle monorepo hoisting
+      def notifeeDir = providers.exec {
+        workingDir(rootDir)
+        commandLine("node", "--print", "require.resolve('@notifee/react-native/package.json')")
+      }.standardOutput.asText.get().trim()
+      url(new File(notifeeDir, "../android/libs"))
+    }
   }
 }
 

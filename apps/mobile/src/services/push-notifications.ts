@@ -1,6 +1,5 @@
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import Constants from 'expo-constants';
+import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import { Platform } from 'react-native';
 import { router, Href } from 'expo-router';
 import { notificationsService } from './notifications';
@@ -12,34 +11,6 @@ export function setActiveChatAppointmentId(id: string | null) {
   activeChatAppointmentId = id;
 }
 
-// Store last received notification data for tap handling
-let lastNotificationData: PushNotificationData | null = null;
-
-// Configure notification behavior
-Notifications.setNotificationHandler({
-  handleNotification: async (notification) => {
-    const data = notification.request.content.data as PushNotificationData & { appointmentId?: string };
-    lastNotificationData = data;
-    // Suppress notification if user is already on this chat screen
-    if (data?.screen === 'chat' && data?.appointmentId && data.appointmentId === activeChatAppointmentId) {
-      return {
-        shouldShowAlert: false,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-        shouldShowBanner: false,
-        shouldShowList: false,
-      };
-    }
-    return {
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    };
-  },
-});
-
 export interface PushNotificationData {
   notificationId?: string;
   type?: string;
@@ -47,15 +18,13 @@ export interface PushNotificationData {
   appointmentId?: string;
   therapistId?: string;
   paymentId?: string;
+  badgeCount?: string;
 }
 
 class PushNotificationService {
-  private expoPushToken: string | null = null;
-  private notificationListener: Notifications.Subscription | null = null;
-  private responseListener: Notifications.Subscription | null = null;
+  private fcmToken: string | null = null;
   private onNotificationReceivedCallback: (() => void) | null = null;
 
-  // Set callback for when notification is received (used to refresh badge count)
   setOnNotificationReceived(callback: () => void): void {
     this.onNotificationReceivedCallback = callback;
   }
@@ -63,7 +32,6 @@ class PushNotificationService {
   async initialize(): Promise<string | null> {
     console.log('[PushNotifications] Initializing...');
 
-    // Request permissions
     const hasPermission = await this.requestPermissions();
     if (!hasPermission) {
       console.log('[PushNotifications] Permission not granted');
@@ -71,101 +39,140 @@ class PushNotificationService {
     }
     console.log('[PushNotifications] Permission granted');
 
-    // Get push token
-    const token = await this.getExpoPushToken();
-    console.log('[PushNotifications] Got token:', token ? token.substring(0, 30) + '...' : 'null');
+    // Create Android notification channel
+    if (Platform.OS === 'android') {
+      await notifee.createChannel({
+        id: 'default',
+        name: 'Default',
+        importance: AndroidImportance.HIGH,
+        vibration: true,
+        vibrationPattern: [0, 250, 250, 250],
+      });
+    }
+
+    // Get FCM token
+    const token = await this.getFcmToken();
+    console.log('[PushNotifications] Got FCM token:', token ? token.substring(0, 30) + '...' : 'null');
 
     if (token) {
-      this.expoPushToken = token;
-      // Register with backend
+      this.fcmToken = token;
       await this.registerToken(token);
     } else {
       console.log('[PushNotifications] No token received, skipping registration');
     }
 
-    // Set up listeners
-    this.setupListeners();
-    console.log('[PushNotifications] Initialization complete');
+    // Listen for FCM token refresh
+    this.setupTokenRefreshListener();
 
+    // Handle notification tap that opened the app from killed state
+    this.handleInitialNotification();
+
+    console.log('[PushNotifications] Initialization complete');
     return token;
   }
 
   async requestPermissions(): Promise<boolean> {
-    // Note: Device.isDevice is false on emulators, but we still want to test push notifications
-    // Only skip on web/Expo Go where push isn't supported
     if (Platform.OS === 'web') {
       console.log('[PushNotifications] Push notifications not supported on web');
       return false;
     }
 
-    console.log('[PushNotifications] Device.isDevice:', Device.isDevice);
+    // Request permission via Firebase Messaging (handles APNs authorization on iOS)
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      console.log('[PushNotifications] Permission denied');
+    if (!enabled) {
+      console.log('[PushNotifications] Permission denied, status:', authStatus);
       return false;
-    }
-
-    // Android specific channel setup
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'Default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#4F46E5',
-      });
     }
 
     return true;
   }
 
-  async getExpoPushToken(): Promise<string | null> {
+  private async getFcmToken(): Promise<string | null> {
     try {
-      const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
-
-      // Validate projectId is a valid UUID format
-      const isValidUuid = projectId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectId);
-
-      console.log('[PushNotifications] projectId:', projectId, 'isValidUuid:', isValidUuid);
-
-      if (!isValidUuid) {
-        // In development without EAS or with invalid projectId, use FCM token directly
-        console.log('[PushNotifications] No valid Expo project ID, using native FCM token');
-        return await this.getNativePushToken();
+      if (!messaging().isDeviceRegisteredForRemoteMessages) {
+        await messaging().registerDeviceForRemoteMessages();
       }
-
-      try {
-        const pushTokenData = await Notifications.getExpoPushTokenAsync({
-          projectId,
-        });
-        console.log('[PushNotifications] Expo push token:', pushTokenData.data);
-        return pushTokenData.data;
-      } catch (expoError) {
-        // If Expo token fails, fall back to native FCM token
-        console.log('[PushNotifications] Expo token failed, falling back to FCM:', expoError);
-        return await this.getNativePushToken();
-      }
+      const token = await messaging().getToken();
+      console.log('[PushNotifications] FCM token:', token.substring(0, 30) + '...');
+      return token;
     } catch (error) {
-      console.error('[PushNotifications] Error getting token:', error);
+      console.error('[PushNotifications] Error getting FCM token:', error);
       return null;
     }
   }
 
-  private async getNativePushToken(): Promise<string | null> {
+  private setupTokenRefreshListener(): void {
+    messaging().onTokenRefresh(async (newToken) => {
+      console.log('[PushNotifications] FCM token refreshed');
+      this.fcmToken = newToken;
+      await this.registerToken(newToken);
+    });
+  }
+
+  // Called from top-level onMessage handler in _layout.tsx
+  async handleForegroundMessage(remoteMessage: any): Promise<void> {
+    const data = (remoteMessage.data || {}) as PushNotificationData;
+
+    console.log('[PushNotifications] handleForegroundMessage:', {
+      title: remoteMessage.notification?.title,
+      data,
+    });
+
+    // Trigger callback to refresh notification count
+    if (this.onNotificationReceivedCallback) {
+      this.onNotificationReceivedCallback();
+    }
+
+    // Update badge
+    if (data.badgeCount) {
+      const count = parseInt(data.badgeCount, 10);
+      if (!isNaN(count)) {
+        await this.setBadgeCount(count);
+      }
+    }
+
+    // Suppress if user is on the active chat screen for this conversation
+    if (data.screen === 'chat' && data.appointmentId && data.appointmentId === activeChatAppointmentId) {
+      console.log('[PushNotifications] Suppressing chat notification (user is on this chat screen)');
+      return;
+    }
+
+    // Display notification via notifee
+    const title = remoteMessage.notification?.title || 'New Notification';
+    const body = remoteMessage.notification?.body || '';
+
     try {
-      const token = await Notifications.getDevicePushTokenAsync();
-      console.log('[PushNotifications] Native FCM token:', token.data);
-      return token.data;
+      await notifee.displayNotification({
+        title,
+        body,
+        data: data as Record<string, string>,
+        android: {
+          channelId: 'default',
+          smallIcon: 'notification_icon',
+          sound: 'default',
+          pressAction: { id: 'default' },
+        },
+        ios: {
+          sound: 'default',
+        },
+      });
+      console.log('[PushNotifications] Notifee displayed notification');
     } catch (error) {
-      console.error('[PushNotifications] Error getting native token:', error);
-      return null;
+      console.error('[PushNotifications] Notifee display error:', error);
+    }
+  }
+
+  private async handleInitialNotification(): Promise<void> {
+    // Check if app was opened from a killed state by tapping a notification
+    const remoteMessage = await messaging().getInitialNotification();
+    if (remoteMessage) {
+      console.log('[PushNotifications] App opened from killed state via notification');
+      const data = (remoteMessage.data || {}) as PushNotificationData;
+      this.handleNotificationNavigation(data);
     }
   }
 
@@ -181,9 +188,9 @@ class PushNotificationService {
   }
 
   async unregisterToken(): Promise<void> {
-    if (this.expoPushToken) {
+    if (this.fcmToken) {
       try {
-        await notificationsService.removeDeviceToken(this.expoPushToken);
+        await notificationsService.removeDeviceToken(this.fcmToken);
         console.log('[PushNotifications] Token unregistered from backend');
       } catch (error) {
         console.error('[PushNotifications] Error unregistering token:', error);
@@ -191,68 +198,21 @@ class PushNotificationService {
     }
   }
 
-  setupListeners(): void {
-    // Handle notifications received while app is in foreground
-    this.notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('[PushNotifications] Foreground notification:', notification);
-      // The notification will be shown automatically due to setNotificationHandler config
-
-      // Update badge count from notification data
-      const data = notification.request.content.data as PushNotificationData & { badgeCount?: string };
-      if (data?.badgeCount) {
-        const count = parseInt(data.badgeCount, 10);
-        if (!isNaN(count)) {
-          this.setBadgeCount(count);
-        }
-      }
-
-      // Trigger callback to refresh notification count
-      if (this.onNotificationReceivedCallback) {
-        this.onNotificationReceivedCallback();
-      }
-    });
-
-    // Handle notification interactions (when user taps notification)
-    this.responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      let data = this.extractNotificationData(response.notification);
-      // Fallback: if tap data is missing screen, use last received notification data
-      if (!data.screen && lastNotificationData?.screen) {
-        data = lastNotificationData;
-      }
-      lastNotificationData = null;
-      this.handleNotificationNavigation(data);
-    });
-
-    // Handle cold-start: notification tapped before listener was set up
-    Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response) {
-        console.log('[PushNotifications] Cold-start notification:', JSON.stringify(response.notification.request.content.data));
-        const data = this.extractNotificationData(response.notification);
-        this.handleNotificationNavigation(data);
-      }
-    });
-  }
-
-  private extractNotificationData(notification: Notifications.Notification): PushNotificationData {
-    const raw = notification.request.content.data ?? {};
-    // On Android, FCM data may be nested under a 'data' key or at top level
-    const data = (raw.data && typeof raw.data === 'object' ? { ...raw, ...raw.data } : raw) as PushNotificationData;
-    return data;
-  }
-
   handleNotificationNavigation(data: PushNotificationData): void {
     if (!data) return;
 
-    const { screen, appointmentId, therapistId } = data;
+    const { screen, type, appointmentId, therapistId } = data;
 
-    switch (screen) {
+    // Route by screen first, then fall back to type
+    const route = screen || this.getScreenFromType(type);
+
+    switch (route) {
       case 'appointment-details':
         if (appointmentId) {
           router.push(`/appointment/${appointmentId}` as Href);
         }
         break;
       case 'join-session':
-        // 15-min reminder deep link — go directly to the session
         if (appointmentId) {
           router.push(`/session/${appointmentId}` as Href);
         }
@@ -273,20 +233,28 @@ class PushNotificationService {
     }
   }
 
+  private getScreenFromType(type?: string): string | undefined {
+    switch (type) {
+      case 'THERAPIST_MESSAGE':
+        return 'chat';
+      case 'BOOKING_CONFIRMATION':
+      case 'APPOINTMENT_REMINDER':
+        return 'appointment-details';
+      case 'PAYMENT_RECEIPT':
+        return 'payment-details';
+      default:
+        return undefined;
+    }
+  }
+
   removeListeners(): void {
-    if (this.notificationListener) {
-      Notifications.removeNotificationSubscription(this.notificationListener);
-      this.notificationListener = null;
-    }
-    if (this.responseListener) {
-      Notifications.removeNotificationSubscription(this.responseListener);
-      this.responseListener = null;
-    }
+    // Firebase messaging listeners are automatically cleaned up
+    // Notifee foreground event is tied to component lifecycle
   }
 
   async setBadgeCount(count: number): Promise<void> {
     try {
-      await Notifications.setBadgeCountAsync(count);
+      await notifee.setBadgeCount(count);
     } catch (error) {
       console.error('[PushNotifications] Error setting badge:', error);
     }
@@ -294,30 +262,11 @@ class PushNotificationService {
 
   async getBadgeCount(): Promise<number> {
     try {
-      return await Notifications.getBadgeCountAsync();
+      return await notifee.getBadgeCount();
     } catch (error) {
       console.error('[PushNotifications] Error getting badge:', error);
       return 0;
     }
-  }
-
-  // Schedule a local notification (useful for testing)
-  async scheduleLocalNotification(
-    title: string,
-    body: string,
-    data?: PushNotificationData,
-    seconds = 1
-  ): Promise<string> {
-    const identifier = await Notifications.scheduleNotificationAsync({
-      content: {
-        title,
-        body,
-        data,
-        sound: true,
-      },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds },
-    });
-    return identifier;
   }
 }
 
