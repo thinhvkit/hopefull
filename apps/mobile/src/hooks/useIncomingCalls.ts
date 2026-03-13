@@ -35,6 +35,13 @@ export function useIncomingCalls() {
     });
   }, [router]);
 
+  // Keep a stable ref to the latest callback so the subscription never needs to re-run
+  // just because the router reference changed.
+  const handleIncomingCallRef = useRef(handleIncomingCall);
+  useEffect(() => {
+    handleIncomingCallRef.current = handleIncomingCall;
+  }, [handleIncomingCall]);
+
   useEffect(() => {
     // Only subscribe if user is authenticated and is a therapist
     if (!isAuthenticated || !user || user.role !== 'THERAPIST') {
@@ -43,10 +50,11 @@ export function useIncomingCalls() {
 
     console.log('Subscribing to incoming calls for user:', user.id);
 
-    // Subscribe to incoming calls
+    // Subscribe to incoming calls — use a stable wrapper so the Firestore
+    // listener is not torn down and re-created every time the router changes.
     unsubscribeRef.current = callSignalingService.subscribeToIncomingCalls(
       user.id,
-      handleIncomingCall
+      (call) => handleIncomingCallRef.current(call)
     );
 
     return () => {
@@ -55,9 +63,10 @@ export function useIncomingCalls() {
         unsubscribeRef.current();
         unsubscribeRef.current = null;
       }
-      currentCallIdRef.current = null;
+      // Don't reset currentCallIdRef here — resetting it causes re-subscription
+      // snapshots to re-trigger navigation for the same call.
     };
-  }, [isAuthenticated, user?.id, user?.role, handleIncomingCall]);
+  }, [isAuthenticated, user?.id, user?.role]);
 
   // Return function to manually unsubscribe if needed
   return {

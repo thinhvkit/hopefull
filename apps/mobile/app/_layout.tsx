@@ -116,7 +116,8 @@ function useProtectedRoute() {
     }
 
     // Authenticated and on auth/welcome screens - go to appropriate tabs
-    if (isAuthenticated && (inAuthGroup || isOnWelcome)) {
+    // Wait for user data to be loaded before navigating so role is known
+    if (isAuthenticated && user && (inAuthGroup || isOnWelcome)) {
       const target = isTherapist ? '/(therapist-tabs)' : '/(tabs)';
       if (__DEV__) console.log('Redirect:', target);
       // Defer to next tick so navigator tree is fully mounted on cold start

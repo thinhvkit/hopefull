@@ -1,4 +1,4 @@
-# Hopefull - Telehealth Therapy Platform
+# Hopeful - Telehealth Therapy Platform
 
 A comprehensive telehealth platform connecting users with licensed therapists for video sessions, appointment booking, and mental wellness support.
 
@@ -15,7 +15,7 @@ A comprehensive telehealth platform connecting users with licensed therapists fo
 ## Project Structure
 
 ```
-hopefull/
+hopeful/
 ├── apps/
 │   ├── api/           # NestJS backend
 │   ├── mobile/        # React Native Expo app
@@ -81,12 +81,6 @@ pnpm mobile:dev   # Mobile app with Expo
 - **URL**: http://localhost:3001
 - **Swagger Docs**: http://localhost:3001/api/docs
 - **Tech**: NestJS, Prisma, PostgreSQL
-
-### Admin Panel
-
-- **URL**: http://localhost:3000
-- **Demo Login**: admin@hopefull.com / admin123
-- **Tech**: React, Vite, TailwindCSS, React Query
 
 ### Mobile App
 

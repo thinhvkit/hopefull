@@ -101,7 +101,7 @@ export default function RegisterScreen() {
 
       await setTokens(result.accessToken, result.refreshToken);
       setUser(result.user);
-      router.replace('/(tabs)');
+      router.replace(result.user?.role === 'THERAPIST' ? '/(therapist-tabs)' : '/(tabs)');
     } catch (error: any) {
       Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
     } finally {
@@ -127,7 +127,7 @@ export default function RegisterScreen() {
 
       await setTokens(result.accessToken, result.refreshToken);
       setUser(result.user);
-      router.replace('/(tabs)');
+      router.replace(result.user?.role === 'THERAPIST' ? '/(therapist-tabs)' : '/(tabs)');
     } catch (error: any) {
       Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
     } finally {

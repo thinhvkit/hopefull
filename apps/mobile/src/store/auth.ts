@@ -96,11 +96,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const biometricEnabled = await isBiometricEnabled();
 
       if (accessToken && refreshToken) {
-        set({ accessToken, refreshToken, isAuthenticated: true });
-        // Fetch user profile from API to validate token
+        set({ accessToken, refreshToken });
+        // Fetch user profile from API to validate token and get role
+        // isAuthenticated is set only after user is loaded to avoid navigating
+        // to the wrong tabs (user vs therapist) before the role is known.
         try {
           const user = await authService.getMe();
-          set({ user });
+          set({ user, isAuthenticated: true });
         } catch (error) {
           // Token might be expired, clear auth state
           console.error('Failed to fetch user profile:', error);

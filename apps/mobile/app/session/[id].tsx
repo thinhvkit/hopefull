@@ -123,6 +123,8 @@ export default function VideoSessionScreen() {
   // Agora state
   const [remoteUid, setRemoteUid] = useState<number | null>(null);
   const [permissionsGranted, setPermissionsGranted] = useState(false);
+  // Incremented when iOS local camera starts — forces RtcSurfaceView to remount
+  const [localVideoKey, setLocalVideoKey] = useState(0);
 
   // Rate session modal
   const [showRateModal, setShowRateModal] = useState(false);
@@ -324,6 +326,12 @@ export default function VideoSessionScreen() {
           },
           onError: (error) => {
             console.error('[Session] Agora error:', error);
+          },
+          onLocalVideoReady: () => {
+            console.log('[Session] Local camera ready — remounting RtcSurfaceView');
+            if (isMountedRef.current) {
+              setLocalVideoKey((k) => k + 1);
+            }
           },
         });
         console.log('[Session] Callbacks set up successfully');
@@ -551,23 +559,35 @@ export default function VideoSessionScreen() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Render loading/connecting state
+  // Render loading/connecting state — keep local RtcSurfaceView mounted underneath
+  // so Agora (iOS) has a UIView to bind to when startPreview() is called.
   if (isConnecting || !isConnected) {
     return (
-      <View style={styles.connectingContainer}>
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
         <StatusBar barStyle="light-content" />
-        <Avatar
-          source={remoteAvatar}
-          name={remoteName}
-          size="xl"
-        />
-        <Text style={styles.connectingName}>{remoteName}</Text>
-        <Text style={styles.connectingText}>
-          {isConnecting ? t('session.connecting') : t('session.waitingForTherapist')}
-        </Text>
-        <TouchableOpacity style={styles.cancelButton} onPress={handleEndCall}>
-          <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
-        </TouchableOpacity>
+        {/* Hidden local video — mounted early so Agora can bind to it on iOS */}
+        {permissionsGranted && (
+          <RtcSurfaceView
+            key={`local-pip-${localVideoKey}`}
+            style={StyleSheet.absoluteFill}
+            canvas={{ uid: 0 }}
+          />
+        )}
+        {/* Connecting overlay on top */}
+        <View style={[StyleSheet.absoluteFill, styles.connectingContainer]}>
+          <Avatar
+            source={remoteAvatar}
+            name={remoteName}
+            size="xl"
+          />
+          <Text style={styles.connectingName}>{remoteName}</Text>
+          <Text style={styles.connectingText}>
+            {isConnecting ? t('session.connecting') : t('session.waitingForTherapist')}
+          </Text>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleEndCall}>
+            <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -618,6 +638,7 @@ export default function VideoSessionScreen() {
         permissionsGranted && isVideoEnabled ? (
           <View style={styles.remoteVideo}>
             <RtcSurfaceView
+              key={`local-main-${localVideoKey}`}
               style={StyleSheet.absoluteFill}
               canvas={{ uid: 0 }}
             />
@@ -663,6 +684,7 @@ export default function VideoSessionScreen() {
       >
         {isVideoEnabled && permissionsGranted ? (
           <RtcSurfaceView
+            key={`local-pip-${localVideoKey}`}
             style={styles.localCamera}
             canvas={{ uid: 0 }}
             zOrderMediaOverlay={true}
@@ -774,7 +796,7 @@ const styles = StyleSheet.create({
   },
   connectingContainer: {
     flex: 1,
-    backgroundColor: '#1F2937',
+    backgroundColor: 'rgba(31, 41, 55, 0.92)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,

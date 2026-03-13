@@ -135,7 +135,7 @@ export default function PhoneVerifyScreen() {
         setUser(response.user);
       }
 
-      router.replace('/(tabs)');
+      router.replace(response.user?.role === 'THERAPIST' ? '/(therapist-tabs)' : '/(tabs)');
     } catch (error: any) {
       console.error('Verification error:', error);
       setAttempts((prev) => prev - 1);

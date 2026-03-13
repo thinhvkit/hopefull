@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Hopefull",
+    "appName": "Hopeful",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
@@ -76,7 +76,7 @@
     },
     "register": {
       "title": "Create Account",
-      "subtitle": "Join Hopefull and start your journey",
+      "subtitle": "Join Hopeful and start your journey",
       "step1Title": "Personal Information",
       "step2Title": "Create Password",
       "firstName": "First Name",

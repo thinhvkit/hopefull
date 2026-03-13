@@ -343,10 +343,12 @@ class CallSignalingService {
           console.log('Incoming calls snapshot received, docs:', snapshot.docs.length);
           snapshot.docChanges().forEach((change: FirebaseFirestoreTypes.DocumentChange) => {
             console.log('Doc change:', change.type, change.doc.id);
-            if (change.type === 'added' || change.type === 'modified') {
+            // Only handle 'added' — new calls arrive as pending.
+            // 'modified' events (pending→ringing, ringing→accepted, etc.) are status
+            // updates on existing calls and must not re-trigger navigation.
+            if (change.type === 'added') {
               const call = { id: change.doc.id, ...change.doc.data() } as CallDocument;
               console.log('Incoming call:', call.id, 'status:', call.status);
-              // Filter status client-side
               if (call.status === 'pending' || call.status === 'ringing') {
                 onIncomingCall(call);
               }

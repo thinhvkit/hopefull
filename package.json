@@ -9,14 +9,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
-    "db:generate": "turbo run db:generate --filter=@hopefull/api",
-    "db:push": "turbo run db:push --filter=@hopefull/api",
-    "db:migrate": "turbo run db:migrate --filter=@hopefull/api",
-    "db:studio": "pnpm --filter @hopefull/api db:studio",
-    "db:seed": "pnpm --filter @hopefull/api db:seed",
-    "api:dev": "pnpm --filter @hopefull/api dev",
-    "mobile:dev": "pnpm --filter @hopefull/mobile dev",
-    "web:dev": "pnpm --filter @hopefull/web dev"
+    "mobile:dev": "pnpm --filter @hopefull/mobile dev"
   },
   "devDependencies": {
     "turbo": "^2.8.5",

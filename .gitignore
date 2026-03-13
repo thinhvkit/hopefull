@@ -61,3 +61,4 @@ web-build
 *.db
 *.sqlite
 *.zip
+*.keystore

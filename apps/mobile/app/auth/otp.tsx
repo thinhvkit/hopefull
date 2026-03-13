@@ -124,7 +124,7 @@ export default function EmailVerifyScreen() {
         setUser(response.user);
       }
 
-      router.replace('/(tabs)');
+      router.replace(response.user?.role === 'THERAPIST' ? '/(therapist-tabs)' : '/(tabs)');
     } catch (error: any) {
       console.error('Email verification error:', error);
       Alert.alert('Verification Failed', error.message || 'Failed to verify email');

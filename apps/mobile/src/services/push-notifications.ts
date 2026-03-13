@@ -1,6 +1,6 @@
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
-import { Platform } from 'react-native';
+import { Platform, PermissionsAndroid } from 'react-native';
 import { router, Href } from 'expo-router';
 import { notificationsService } from './notifications';
 
@@ -46,7 +46,7 @@ class PushNotificationService {
         name: 'Default',
         importance: AndroidImportance.HIGH,
         vibration: true,
-        vibrationPattern: [0, 250, 250, 250],
+        vibrationPattern: [250, 250, 250, 250],
       });
     }
 
@@ -75,6 +75,17 @@ class PushNotificationService {
     if (Platform.OS === 'web') {
       console.log('[PushNotifications] Push notifications not supported on web');
       return false;
+    }
+
+    // Android 13+ requires explicit POST_NOTIFICATIONS permission request
+    if (Platform.OS === 'android' && Platform.Version >= 33) {
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      );
+      if (result !== PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('[PushNotifications] POST_NOTIFICATIONS denied:', result);
+        return false;
+      }
     }
 
     // Request permission via Firebase Messaging (handles APNs authorization on iOS)

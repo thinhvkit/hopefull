@@ -22,7 +22,8 @@ export default function BiometricSetupScreen() {
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [biometricStatus, setBiometricStatus] = useState<BiometricStatus | null>(null);
-  const { setBiometricEnabled } = useAuthStore();
+  const { setBiometricEnabled, user } = useAuthStore();
+  const homeTabs = user?.role === 'THERAPIST' ? '/(therapist-tabs)' : '/(tabs)';
 
   useEffect(() => {
     loadCredentials();
@@ -47,11 +48,11 @@ export default function BiometricSetupScreen() {
         if (__DEV__) {
           console.log('BiometricSetup: No temp credentials found');
         }
-        router.replace('/(tabs)');
+        router.replace(homeTabs as any);
       }
     } catch (error) {
       console.error('Error loading biometric setup credentials:', error);
-      router.replace('/(tabs)');
+      router.replace(homeTabs as any);
     }
   };
 
@@ -63,7 +64,7 @@ export default function BiometricSetupScreen() {
   const handleEnableBiometric = async () => {
     if (!credentials?.email || !credentials?.password) {
       Alert.alert('Error', 'Credentials not available');
-      router.replace('/(tabs)');
+      router.replace(homeTabs as any);
       return;
     }
 
@@ -76,7 +77,7 @@ export default function BiometricSetupScreen() {
         Alert.alert(
           'Success',
           `${biometricStatus?.biometricName} login enabled!`,
-          [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+          [{ text: 'OK', onPress: () => router.replace(homeTabs as any) }]
         );
       } else {
         Alert.alert('Cancelled', 'Biometric setup was cancelled');
@@ -89,7 +90,7 @@ export default function BiometricSetupScreen() {
   };
 
   const handleSkip = () => {
-    router.replace('/(tabs)');
+    router.replace(homeTabs as any);
   };
 
   const getBiometricIcon = () => {
@@ -113,7 +114,7 @@ export default function BiometricSetupScreen() {
 
   if (!biometricStatus.isAvailable) {
     // Skip this screen if biometric not available
-    router.replace('/(tabs)');
+    router.replace(homeTabs as any);
     return null;
   }
 

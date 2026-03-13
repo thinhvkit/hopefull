@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "expo start",
     "android": "expo run:android",
+    "android:release": "expo run:android --configuration Release",
     "ios": "expo run:ios",
+    "ios:release": "expo run:ios --configuration Release --device 00008110-00163D360C09801E",
     "web": "expo start --web",
     "build:dev": "eas build --profile development",
     "build:preview": "eas build --profile preview",

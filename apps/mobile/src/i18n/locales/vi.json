@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Hopefull",
+    "appName": "Hopeful",
     "loading": "Đang tải...",
     "error": "Lỗi",
     "success": "Thành công",
@@ -75,7 +75,7 @@
     },
     "register": {
       "title": "Tạo Tài Khoản",
-      "subtitle": "Tham gia Hopefull và bắt đầu hành trình của bạn",
+      "subtitle": "Tham gia Hopeful và bắt đầu hành trình của bạn",
       "step1Title": "Thông Tin Cá Nhân",
       "step2Title": "Tạo Mật Khẩu",
       "firstName": "Tên",

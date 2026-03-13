@@ -8,6 +8,7 @@ import {
   VideoSourceType,
   RenderModeType,
 } from 'react-native-agora';
+import { Platform } from 'react-native';
 
 export type NetworkQuality = 'good' | 'fair' | 'poor' | 'unknown';
 
@@ -29,6 +30,8 @@ export interface VideoSessionCallbacks {
   onCallEnded?: () => void;
   onReconnecting?: () => void;
   onReconnected?: () => void;
+  /** Fired on iOS when the local camera starts capturing (state=2). Use this to force-remount the local RtcSurfaceView. */
+  onLocalVideoReady?: () => void;
 }
 
 export interface AgoraConfig {
@@ -207,6 +210,11 @@ class VideoSessionService implements IRtcEngineEventHandler {
     this._isAudioEnabled = true;
     this._isVideoEnabled = true;
     this._isFrontCamera = true;
+    if (this._localVideoRetryTimer) {
+      clearTimeout(this._localVideoRetryTimer);
+      this._localVideoRetryTimer = null;
+    }
+    this._localVideoRetryCount = 0;
     console.log('[Agora] Engine destroyed and state reset');
   }
 
@@ -343,6 +351,48 @@ class VideoSessionService implements IRtcEngineEventHandler {
     console.log('[Agora] Local participant added:', localParticipant);
 
     this.callbacks.onJoined?.(this.getParticipants());
+
+    // On iOS, the camera permission dialog is async — the user may not have tapped
+    // "Allow" yet when joinChannel fires. Retry enabling local video every second
+    // for up to 10 seconds until the camera actually starts.
+    if (Platform.OS === 'ios') {
+      this.retryLocalVideoIOS();
+    }
+  }
+
+  private _localVideoRetryCount = 0;
+  private _localVideoRetryTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private retryLocalVideoIOS(): void {
+    this._localVideoRetryCount = 0;
+    this.scheduleLocalVideoRetry();
+  }
+
+  private scheduleLocalVideoRetry(): void {
+    if (this._localVideoRetryTimer) clearTimeout(this._localVideoRetryTimer);
+    this._localVideoRetryTimer = setTimeout(() => {
+      if (!this.engine || !this._isVideoEnabled) return;
+      this.engine.enableLocalVideo(false);
+      this.engine.enableLocalVideo(true);
+      this.engine.startPreview();
+      this._localVideoRetryCount++;
+      if (this._localVideoRetryCount < 10) {
+        this.scheduleLocalVideoRetry();
+      }
+    }, 1000);
+  }
+
+  onLocalVideoStateChanged(_connection: RtcConnection, state: number, _errorCode: number): void {
+    // state 2 = capturing — camera is active, stop retrying
+    if (Platform.OS === 'ios' && state === 2) {
+      if (this._localVideoRetryTimer) {
+        clearTimeout(this._localVideoRetryTimer);
+        this._localVideoRetryTimer = null;
+      }
+      this._localVideoRetryCount = 0;
+      // Notify UI to force-remount the local RtcSurfaceView so it picks up the live feed
+      this.callbacks.onLocalVideoReady?.();
+    }
   }
 
   onUserJoined(connection: RtcConnection, remoteUid: number, elapsed: number): void {

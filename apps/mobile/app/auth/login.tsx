@@ -83,6 +83,8 @@ export default function LoginScreen() {
       await setTokens(response.accessToken, response.refreshToken);
       setUser(response.user);
 
+      const isTherapist = response.user?.role === 'THERAPIST';
+
       // Check if we should offer biometric setup
       const biometricAvailable = await isBiometricAvailable();
       if (biometricAvailable && !hasOfferedBiometric && !biometricEnabled) {
@@ -91,7 +93,7 @@ export default function LoginScreen() {
         await SecureStore.setItemAsync('temp_biometric_setup', JSON.stringify({ email, password }));
         router.push('/auth/biometric-setup');
       } else {
-        router.replace('/(tabs)');
+        router.replace(isTherapist ? '/(therapist-tabs)' : '/(tabs)');
       }
     } catch (error: any) {
       Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
@@ -132,7 +134,7 @@ export default function LoginScreen() {
 
       await setTokens(response.accessToken, response.refreshToken);
       setUser(response.user);
-      router.replace('/(tabs)');
+      router.replace(response.user?.role === 'THERAPIST' ? '/(therapist-tabs)' : '/(tabs)');
     } catch (error: any) {
       Alert.alert(t('auth.login.loginFailed'), t('auth.login.pleaseLoginWithPassword'));
     } finally {
@@ -166,7 +168,7 @@ export default function LoginScreen() {
 
       await setTokens(result.accessToken, result.refreshToken);
       setUser(result.user);
-      router.replace('/(tabs)');
+      router.replace(result.user?.role === 'THERAPIST' ? '/(therapist-tabs)' : '/(tabs)');
     } catch (error: any) {
       Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
     } finally {
@@ -192,7 +194,7 @@ export default function LoginScreen() {
 
       await setTokens(result.accessToken, result.refreshToken);
       setUser(result.user);
-      router.replace('/(tabs)');
+      router.replace(result.user?.role === 'THERAPIST' ? '/(therapist-tabs)' : '/(tabs)');
     } catch (error: any) {
       Alert.alert(t('common.error'), error.message || t('auth.login.loginFailed'));
     } finally {
@@ -211,148 +213,148 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         bounces={false}
       >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.title}>{t('auth.login.title')}</Text>
-        <Text style={styles.subtitle}>{t('auth.login.subtitle')}</Text>
-      </View>
-
-      <View style={styles.form}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>{t('auth.login.email')}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder={t('auth.login.emailPlaceholder')}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>{t('auth.login.password')}</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={[styles.input, styles.passwordInput]}
-              placeholder={t('auth.login.passwordPlaceholder')}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoComplete="password"
-            />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Ionicons
-                name={showPassword ? 'eye-off' : 'eye'}
-                size={20}
-                color="#6B7280"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <Link href="/auth/forgot-password" asChild>
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>{t('auth.login.forgotPassword')}</Text>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#111827" />
           </TouchableOpacity>
-        </Link>
-
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>{t('auth.login.signIn')}</Text>
-          )}
-        </TouchableOpacity>
-
-        {/* Biometric Login Button */}
-        {biometricStatus?.isEnabled && biometricEnabled && (
-          <>
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{t('common.or')}</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.biometricButton, biometricLoading && styles.buttonDisabled]}
-              onPress={handleBiometricLogin}
-              disabled={biometricLoading}
-            >
-              {biometricLoading ? (
-                <ActivityIndicator color="#4F46E5" />
-              ) : (
-                <>
-                  <Ionicons name={getBiometricIcon()} size={24} color="#4F46E5" />
-                  <Text style={styles.biometricButtonText}>
-                    {t('auth.login.loginWith', { method: biometricStatus.biometricName })}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </>
-        )}
-
-        {/* Social Login Buttons */}
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>{t('common.continueWith')}</Text>
-          <View style={styles.dividerLine} />
+          <Text style={styles.title}>{t('auth.login.title')}</Text>
+          <Text style={styles.subtitle}>{t('auth.login.subtitle')}</Text>
         </View>
 
-        <View style={styles.socialButtons}>
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>{t('auth.login.email')}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t('auth.login.emailPlaceholder')}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>{t('auth.login.password')}</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, styles.passwordInput]}
+                placeholder={t('auth.login.passwordPlaceholder')}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoComplete="password"
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={20}
+                  color="#6B7280"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <Link href="/auth/forgot-password" asChild>
+            <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>{t('auth.login.forgotPassword')}</Text>
+            </TouchableOpacity>
+          </Link>
+
           <TouchableOpacity
-            style={[styles.socialButton, googleLoading && styles.buttonDisabled]}
-            onPress={handleGoogleSignIn}
-            disabled={googleLoading || isLoading}
+            style={[styles.button, isLoading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={isLoading}
           >
-            {googleLoading ? (
-              <ActivityIndicator size="small" color="#111827" />
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
             ) : (
-              <>
-                <Ionicons name="logo-google" size={20} color="#111827" />
-                <Text style={styles.socialButtonText}>{t('auth.login.google')}</Text>
-              </>
+              <Text style={styles.buttonText}>{t('auth.login.signIn')}</Text>
             )}
           </TouchableOpacity>
 
-          {appleAvailable && (
+          {/* Biometric Login Button */}
+          {biometricStatus?.isEnabled && biometricEnabled && (
+            <>
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>{t('common.or')}</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.biometricButton, biometricLoading && styles.buttonDisabled]}
+                onPress={handleBiometricLogin}
+                disabled={biometricLoading}
+              >
+                {biometricLoading ? (
+                  <ActivityIndicator color="#4F46E5" />
+                ) : (
+                  <>
+                    <Ionicons name={getBiometricIcon()} size={24} color="#4F46E5" />
+                    <Text style={styles.biometricButtonText}>
+                      {t('auth.login.loginWith', { method: biometricStatus.biometricName })}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </>
+          )}
+
+          {/* Social Login Buttons */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{t('common.continueWith')}</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <View style={styles.socialButtons}>
             <TouchableOpacity
-              style={[styles.socialButton, appleLoading && styles.buttonDisabled]}
-              onPress={handleAppleSignIn}
-              disabled={appleLoading || isLoading}
+              style={[styles.socialButton, googleLoading && styles.buttonDisabled]}
+              onPress={handleGoogleSignIn}
+              disabled={googleLoading || isLoading}
             >
-              {appleLoading ? (
+              {googleLoading ? (
                 <ActivityIndicator size="small" color="#111827" />
               ) : (
                 <>
-                  <Ionicons name="logo-apple" size={20} color="#111827" />
-                  <Text style={styles.socialButtonText}>{t('auth.login.apple')}</Text>
+                  <Ionicons name="logo-google" size={20} color="#111827" />
+                  <Text style={styles.socialButtonText}>{t('auth.login.google')}</Text>
                 </>
               )}
             </TouchableOpacity>
-          )}
-        </View>
-      </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>{t('auth.login.noAccount')} </Text>
-        <Link href="/auth/register" asChild>
-          <TouchableOpacity>
-            <Text style={styles.footerLink}>{t('auth.login.signUp')}</Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
+            {appleAvailable && (
+              <TouchableOpacity
+                style={[styles.socialButton, appleLoading && styles.buttonDisabled]}
+                onPress={handleAppleSignIn}
+                disabled={appleLoading || isLoading}
+              >
+                {appleLoading ? (
+                  <ActivityIndicator size="small" color="#111827" />
+                ) : (
+                  <>
+                    <Ionicons name="logo-apple" size={20} color="#111827" />
+                    <Text style={styles.socialButtonText}>{t('auth.login.apple')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>{t('auth.login.noAccount')} </Text>
+          <Link href="/auth/register" asChild>
+            <TouchableOpacity>
+              <Text style={styles.footerLink}>{t('auth.login.signUp')}</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
